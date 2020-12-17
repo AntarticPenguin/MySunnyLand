@@ -6,25 +6,31 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     #region Variables
+    public CircleCollider2D _circleCollider;
+    public Vector2 _groundCheckBox = new Vector2(0.26f, 0.02f);
+    public PhysicsMaterial2D _dynamicPhysics;
+
     private Rigidbody2D _rigidbody;
     private Transform _transform;
-    public CircleCollider2D _circleCollider;
-    public Vector2 boxSize;
+    private ContactPoint2D[] _contacts;
+    private float _previousFriction;
+
 
     //movement
     public float _speed = 3.0f;
-    private Vector3 _flippedScale = new Vector3(-1.0f, 1.0f, 1.0f);
-    private Vector2 _refVelocity = Vector2.zero;
     public float _smoothDamping = 0.05f;
 
-    //jump
-    private bool _jumpInput;
-    public float _jumpForce = 500.0f;
-
+    private Vector3 _flippedScale = new Vector3(-1.0f, 1.0f, 1.0f);
     private Vector2 _movement;
+    private Vector2 _refVelocity = Vector2.zero;
 
+    //jump
+    public float _jumpForce = 300.0f;
     public bool _isGrounded;
 
+    private bool _jumpInput;
+
+    //animation
     private Animator _animator;
     private int _animSpeedFloat;
     private int _animGroundedBool;
@@ -38,7 +44,8 @@ public class PlayerController : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
         _transform = transform;
         _circleCollider = GetComponent<CircleCollider2D>();
-        _isGrounded = true;
+        _contacts = new ContactPoint2D[2];
+        _previousFriction = _dynamicPhysics.friction;
 
         _animator = GetComponent<Animator>();
         _animSpeedFloat = Animator.StringToHash(AnimatorKey.Speed);
@@ -70,29 +77,40 @@ public class PlayerController : MonoBehaviour
 	private void FixedUpdate()
 	{
         CheckGround();
+        UpdateFriction();
         UpdateMovement();
         UpdateDirection();
         UpdateJump();
 	}
-    #endregion
 
-    #region Methods
-    private void UpdateMovement()
+	private void OnTriggerEnter2D(Collider2D collision)
+	{
+        if (collision.gameObject.tag == TagName.Item)
+        {
+            collision.gameObject.GetComponent<IInteractable>()?.Interact();
+        }
+    }
+	#endregion
+
+	#region Methods
+	private void UpdateMovement()
 	{
         Vector2 newVelocity = _rigidbody.velocity;
-
         if (_movement.Equals(Vector2.zero))
 		{
             newVelocity.x = 0;
             _rigidbody.velocity = Vector2.SmoothDamp(_rigidbody.velocity, newVelocity, ref _refVelocity, _smoothDamping);
             _animator.SetFloat(_animSpeedFloat, 0);
+
             return;
 		}
         newVelocity.x = _movement.x * _speed;
         _rigidbody.velocity = newVelocity;
 
         if(_isGrounded)
+		{
             _animator.SetFloat(_animSpeedFloat, Mathf.Abs(_rigidbody.velocity.x));
+        }
 	}
 
     private void UpdateDirection()
@@ -117,19 +135,45 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGround()
 	{
-        float distance = _circleCollider.bounds.extents.y + 0.05f;
         Vector3 startPos = _circleCollider.bounds.center;
         startPos.y -= _circleCollider.bounds.extents.y;
-        Collider2D hitCollider = Physics2D.OverlapBox(startPos, boxSize, 0, LayerMask.GetMask("Ground"));
+        Collider2D hitCollider = Physics2D.OverlapBox(startPos, _groundCheckBox, 0, LayerMask.GetMask("Ground"));
 
         if (hitCollider != null)
+		{
             _isGrounded = true;
+        }
         else
+		{
             _isGrounded = false;
+        }
 
         _animator.SetBool(_animGroundedBool, _isGrounded);
+    }
 
+    private void UpdateFriction()
+	{
+        if(_isGrounded && _movement.Equals(Vector2.zero))
+        {
+            _circleCollider.GetContacts(_contacts);
+            if(0.7 < _contacts[0].normal.y && _contacts[0].normal.y < 1)
+			{
+                _dynamicPhysics.friction = 0.01f;
+            }
+        }
+        else
+		{
+            _dynamicPhysics.friction = 0.0f;
+            
+        }
 
+        if(_previousFriction != _dynamicPhysics.friction)
+		{
+            Debug.Log("Frction: " + _previousFriction + ", " + _dynamicPhysics.friction);
+            _previousFriction = _dynamicPhysics.friction;
+            _circleCollider.enabled = false;
+            _circleCollider.enabled = true;
+        }
     }
 
 	private void OnDrawGizmos()
@@ -137,7 +181,7 @@ public class PlayerController : MonoBehaviour
         Vector3 startPos = _circleCollider.bounds.center;
         startPos.y -= _circleCollider.bounds.extents.y;
         Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(startPos, boxSize);
+        Gizmos.DrawWireCube(startPos, _groundCheckBox);
 	}
 	#endregion
 }
