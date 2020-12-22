@@ -3,30 +3,32 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IDamagable
 {
     #region Variables
-    public CircleCollider2D _circleCollider;
+    public Collider2D _bodyCollider;
     public Vector2 _groundCheckBox = new Vector2(0.26f, 0.02f);
     public PhysicsMaterial2D _dynamicPhysics;
 
     private Rigidbody2D _rigidbody;
     private Transform _transform;
-    private ContactPoint2D[] _contacts;
+    private ContactPoint2D[] _bodyContacts;
+    private ContactFilter2D _bodyContactsFilter;
     private float _previousFriction;
-
 
     //movement
     public float _speed = 3.0f;
     public float _smoothDamping = 0.05f;
+    public float _climbSpeed = 1.5f;
 
     private Vector3 _flippedScale = new Vector3(-1.0f, 1.0f, 1.0f);
     private Vector2 _movement;
     private Vector2 _refVelocity = Vector2.zero;
+    public bool _isGrounded;
+    public bool _isClimbing;
 
     //jump
     public float _jumpForce = 300.0f;
-    public bool _isGrounded;
 
     private bool _jumpInput;
 
@@ -35,6 +37,12 @@ public class PlayerController : MonoBehaviour
     private int _animSpeedFloat;
     private int _animGroundedBool;
     private int _animVerticalSpeedFloat;
+    private int _animHurtTrigger;
+    private int _animClimbBool;
+    private int _animClimbingOrderBool;
+
+    //status
+    public int _hp;
     #endregion
 
     #region Unity Methods
@@ -43,14 +51,17 @@ public class PlayerController : MonoBehaviour
     {
         _rigidbody = GetComponent<Rigidbody2D>();
         _transform = transform;
-        _circleCollider = GetComponent<CircleCollider2D>();
-        _contacts = new ContactPoint2D[2];
+        _bodyContacts = new ContactPoint2D[2];
+        _bodyContactsFilter.SetLayerMask(LayerMask.GetMask(TagAndLayer.Layer.Ground));
         _previousFriction = _dynamicPhysics.friction;
 
         _animator = GetComponent<Animator>();
         _animSpeedFloat = Animator.StringToHash(AnimatorKey.Speed);
         _animGroundedBool = Animator.StringToHash(AnimatorKey.Grounded);
         _animVerticalSpeedFloat = Animator.StringToHash(AnimatorKey.VerticalSpeed);
+        _animHurtTrigger = Animator.StringToHash(AnimatorKey.Hurt);
+        _animClimbBool = Animator.StringToHash(AnimatorKey.Climb);
+        _animClimbingOrderBool = Animator.StringToHash(AnimatorKey.ClimbingOrder);
     }
 
     // Update is called once per frame
@@ -65,6 +76,22 @@ public class PlayerController : MonoBehaviour
         else if(Input.GetKey(KeyCode.RightArrow))
 		{
             _movement.x = 1.0f;
+		}
+
+        //climb
+        if(Input.GetKey(KeyCode.UpArrow))
+		{
+            _movement.y = 1.0f;
+		}
+        else if(Input.GetKey(KeyCode.DownArrow))
+		{
+            _movement.y = -1.0f;
+		}
+
+        if(_isClimbing && !_movement.Equals(Vector2.zero))
+		{
+            bool order = _animator.GetBool(_animClimbingOrderBool);
+            _animator.SetBool(_animClimbingOrderBool, !order);
 		}
         
         //jump
@@ -85,31 +112,66 @@ public class PlayerController : MonoBehaviour
 
 	private void OnTriggerEnter2D(Collider2D collision)
 	{
-        if (collision.gameObject.tag == TagName.Item)
+        if (collision.gameObject.tag == TagAndLayer.Tag.Item)
         {
             collision.gameObject.GetComponent<IInteractable>()?.Interact();
         }
     }
+
+	private void OnTriggerStay2D(Collider2D collision)
+	{
+		if (collision.gameObject.layer == LayerMask.NameToLayer(TagAndLayer.Layer.Cliff) &&
+				  1.0f <= _movement.y)
+		{
+			_isClimbing = true;
+			_rigidbody.gravityScale = 0.0f;
+			_animator.SetBool(_animClimbBool, true);
+		}
+        else if(_isClimbing && _isGrounded)
+		{
+            //절벽을 타고 내려와 땅에 닿았을 경우
+            _isClimbing = false;
+            _rigidbody.gravityScale = 1.0f;
+            _animator.SetBool(_animClimbBool, false);
+        }
+	}
+
+	private void OnTriggerExit2D(Collider2D collision)
+	{
+		if (_isClimbing &&
+			collision.gameObject.layer == LayerMask.NameToLayer(TagAndLayer.Layer.Cliff))
+		{
+			_isClimbing = false;
+			_rigidbody.gravityScale = 1f;
+            _animator.SetBool(_animClimbBool, false);
+        }
+	}
 	#endregion
 
 	#region Methods
 	private void UpdateMovement()
 	{
-        Vector2 newVelocity = _rigidbody.velocity;
-        if (_movement.Equals(Vector2.zero))
+        if(_isClimbing)
 		{
-            newVelocity.x = 0;
-            _rigidbody.velocity = Vector2.SmoothDamp(_rigidbody.velocity, newVelocity, ref _refVelocity, _smoothDamping);
-            _animator.SetFloat(_animSpeedFloat, 0);
-
-            return;
-		}
-        newVelocity.x = _movement.x * _speed;
-        _rigidbody.velocity = newVelocity;
-
-        if(_isGrounded)
+            _rigidbody.velocity = new Vector2(_movement.x * _climbSpeed, _movement.y * _climbSpeed);
+        }
+        else
 		{
-            _animator.SetFloat(_animSpeedFloat, Mathf.Abs(_rigidbody.velocity.x));
+            Vector2 newVelocity = _rigidbody.velocity;
+            if (_movement.Equals(Vector2.zero))
+            {
+                newVelocity.x = 0;
+                _rigidbody.velocity = Vector2.SmoothDamp(_rigidbody.velocity, newVelocity, ref _refVelocity, _smoothDamping);
+                _animator.SetFloat(_animSpeedFloat, 0);
+                return;
+            }
+            newVelocity.x = _movement.x * _speed;
+            _rigidbody.velocity = newVelocity;
+
+            if (_isGrounded)
+            {
+                _animator.SetFloat(_animSpeedFloat, Mathf.Abs(_rigidbody.velocity.x));
+            }
         }
 	}
 
@@ -135,9 +197,9 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGround()
 	{
-        Vector3 startPos = _circleCollider.bounds.center;
-        startPos.y -= _circleCollider.bounds.extents.y;
-        Collider2D hitCollider = Physics2D.OverlapBox(startPos, _groundCheckBox, 0, LayerMask.GetMask("Ground"));
+        Vector3 startPos = _bodyCollider.bounds.center;
+        startPos.y -= _bodyCollider.bounds.extents.y;
+        Collider2D hitCollider = Physics2D.OverlapBox(startPos, _groundCheckBox, 0, LayerMask.GetMask(TagAndLayer.Layer.Ground));
 
         if (hitCollider != null)
 		{
@@ -155,8 +217,8 @@ public class PlayerController : MonoBehaviour
 	{
         if(_isGrounded && _movement.Equals(Vector2.zero))
         {
-            _circleCollider.GetContacts(_contacts);
-            if(0.7 < _contacts[0].normal.y && _contacts[0].normal.y < 1)
+            _bodyCollider.GetContacts(_bodyContacts);
+            if(0.7 < _bodyContacts[0].normal.y && _bodyContacts[0].normal.y < 1)
 			{
                 _dynamicPhysics.friction = 0.01f;
             }
@@ -169,19 +231,32 @@ public class PlayerController : MonoBehaviour
 
         if(_previousFriction != _dynamicPhysics.friction)
 		{
-            Debug.Log("Frction: " + _previousFriction + ", " + _dynamicPhysics.friction);
             _previousFriction = _dynamicPhysics.friction;
-            _circleCollider.enabled = false;
-            _circleCollider.enabled = true;
+            _bodyCollider.enabled = false;
+            _bodyCollider.enabled = true;
         }
     }
 
 	private void OnDrawGizmos()
 	{
-        Vector3 startPos = _circleCollider.bounds.center;
-        startPos.y -= _circleCollider.bounds.extents.y;
+        Vector3 startPos = _bodyCollider.bounds.center;
+        startPos.y -= _bodyCollider.bounds.extents.y;
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(startPos, _groundCheckBox);
+	}
+	#endregion
+
+	#region IDamagable Interfaces
+	public void TakeDamage(int damage)
+	{
+        _hp -= damage;
+        if(_hp <= 0)
+		{
+            _hp = 0;
+            Debug.Log("YOU DIED");
+		}
+
+        _animator.SetTrigger(_animHurtTrigger);
 	}
 	#endregion
 }
