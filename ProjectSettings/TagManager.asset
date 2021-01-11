@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Item
   - Obstacle
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -17,8 +18,8 @@ TagManager:
   - 
   - Ground
   - Cliff
-  - 
-  - 
+  - Player
+  - Enemy
   - 
   - 
   - 
@@ -54,4 +55,10 @@ TagManager:
     locked: 0
   - name: Player
     uniqueID: 1462075091
+    locked: 0
+  - name: Projectile
+    uniqueID: 1846743263
+    locked: 0
+  - name: Effect
+    uniqueID: 2029220615
     locked: 0

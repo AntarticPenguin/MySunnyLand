@@ -15,15 +15,17 @@ public class PlayerController : MonoBehaviour, IDamagable
     private ContactPoint2D[] _bodyContacts;
     private ContactFilter2D _bodyContactsFilter;
     private float _previousFriction;
+    private Vector3 _flippedScale = new Vector3(-1.0f, 1.0f, 1.0f);
+
+    private StateMachine<PlayerController> _stateMachine;
 
     //movement
     public float _speed = 3.0f;
     public float _smoothDamping = 0.05f;
     public float _climbSpeed = 1.5f;
 
-    private Vector3 _flippedScale = new Vector3(-1.0f, 1.0f, 1.0f);
+    private bool _isFlipped;
     private Vector2 _movement;
-    private Vector2 _refVelocity = Vector2.zero;
     public bool _isGrounded;
     public bool _isClimbing;
 
@@ -32,22 +34,49 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private bool _jumpInput;
 
+    //attack
+    public GameObject _projectilePrefab;
+
+    private Vector3 _launchPosition;
+    private Vector3 _launchOffset = new Vector3(0.3f, 0.15f, 0.0f);
+
     //animation
     private Animator _animator;
-    private int _animSpeedFloat;
     private int _animGroundedBool;
     private int _animVerticalSpeedFloat;
-    private int _animHurtTrigger;
-    private int _animClimbBool;
-    private int _animClimbingOrderBool;
 
     //status
-    public int _hp;
-    #endregion
+    public int _healthCount;
+    public float _invincibleTime;
 
-    #region Unity Methods
-    // Start is called before the first frame update
-    void Start()
+    private bool _isInvincible;
+	#endregion
+
+	#region Properties
+	public ref Vector2 Movement
+	{
+		get
+		{
+			return ref _movement;
+		}
+	}
+
+	public bool IsAlive => (_healthCount > 0);
+    public bool IsFlipped => _isFlipped;
+    public bool IsGrounded => _isGrounded;
+    public bool IsClimbing
+    {
+        get { return _isClimbing; }
+        set { _isClimbing = value; }
+    }
+
+    public float Speed => _speed;
+    public float ClimbSpeed => _climbSpeed;
+	#endregion
+
+	#region Unity Methods
+	// Start is called before the first frame update
+	void Start()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
         _transform = transform;
@@ -55,31 +84,42 @@ public class PlayerController : MonoBehaviour, IDamagable
         _bodyContactsFilter.SetLayerMask(LayerMask.GetMask(TagAndLayer.Layer.Ground));
         _previousFriction = _dynamicPhysics.friction;
 
+        _stateMachine = new StateMachine<PlayerController>(this, new PlayerIdleState());
+        _stateMachine.AddState(new PlayerMoveState());
+        _stateMachine.AddState(new PlayerDamagedState());
+        _stateMachine.AddState(new PlayerClimbState());
+
         _animator = GetComponent<Animator>();
-        _animSpeedFloat = Animator.StringToHash(AnimatorKey.Speed);
         _animGroundedBool = Animator.StringToHash(AnimatorKey.Grounded);
         _animVerticalSpeedFloat = Animator.StringToHash(AnimatorKey.VerticalSpeed);
-        _animHurtTrigger = Animator.StringToHash(AnimatorKey.Hurt);
-        _animClimbBool = Animator.StringToHash(AnimatorKey.Climb);
-        _animClimbingOrderBool = Animator.StringToHash(AnimatorKey.ClimbingOrder);
+
+        _isInvincible = false;
+        _invincibleTime = 3.0f;
     }
 
     // Update is called once per frame
     void Update()
     {
+        _stateMachine.Update(Time.deltaTime);
+
+        if (_stateMachine.GetCurrentStateType() == typeof(PlayerDamagedState))
+            return;
+
         //move
         _movement = Vector2.zero;
         if (Input.GetKey(KeyCode.LeftArrow))
 		{
             _movement.x = -1.0f;
-		}
+            _isFlipped = true;
+        }
         else if(Input.GetKey(KeyCode.RightArrow))
 		{
             _movement.x = 1.0f;
-		}
+            _isFlipped = false;
+        }
 
         //climb
-        if(Input.GetKey(KeyCode.UpArrow))
+        if (Input.GetKey(KeyCode.UpArrow))
 		{
             _movement.y = 1.0f;
 		}
@@ -87,17 +127,24 @@ public class PlayerController : MonoBehaviour, IDamagable
 		{
             _movement.y = -1.0f;
 		}
-
-        if(_isClimbing && !_movement.Equals(Vector2.zero))
-		{
-            bool order = _animator.GetBool(_animClimbingOrderBool);
-            _animator.SetBool(_animClimbingOrderBool, !order);
-		}
-        
+     
         //jump
-        if(_isGrounded && Input.GetKeyDown(KeyCode.Space))
+        if (IsGrounded && Input.GetKeyDown(KeyCode.Space))
 		{
             _jumpInput = true;
+		}
+
+        //attack
+        if(Input.GetKeyDown(KeyCode.Z))
+		{
+            GameObject go = Instantiate(_projectilePrefab, _launchPosition, Quaternion.identity);
+            Projectile projectile = go.GetComponent<Projectile>();
+            if(projectile != null)
+            {
+                projectile._owner = gameObject;
+                Vector2 direction = Vector2.right * (_isFlipped ? -1.0f : 1.0f);
+                projectile._direction = direction;
+            }
 		}
     }
 
@@ -105,10 +152,11 @@ public class PlayerController : MonoBehaviour, IDamagable
 	{
         CheckGround();
         UpdateFriction();
-        UpdateMovement();
         UpdateDirection();
         UpdateJump();
-	}
+
+        _stateMachine.FixedUpdate(Time.fixedDeltaTime);
+    }
 
 	private void OnTriggerEnter2D(Collider2D collision)
 	{
@@ -123,70 +171,42 @@ public class PlayerController : MonoBehaviour, IDamagable
 		if (collision.gameObject.layer == LayerMask.NameToLayer(TagAndLayer.Layer.Cliff) &&
 				  1.0f <= _movement.y)
 		{
-			_isClimbing = true;
-			_rigidbody.gravityScale = 0.0f;
-			_animator.SetBool(_animClimbBool, true);
+            _stateMachine.ChangeState<PlayerClimbState>();
 		}
-        else if(_isClimbing && _isGrounded)
-		{
-            //절벽을 타고 내려와 땅에 닿았을 경우
-            _isClimbing = false;
-            _rigidbody.gravityScale = 1.0f;
-            _animator.SetBool(_animClimbBool, false);
-        }
 	}
 
 	private void OnTriggerExit2D(Collider2D collision)
 	{
-		if (_isClimbing &&
-			collision.gameObject.layer == LayerMask.NameToLayer(TagAndLayer.Layer.Cliff))
-		{
-			_isClimbing = false;
-			_rigidbody.gravityScale = 1f;
-            _animator.SetBool(_animClimbBool, false);
-        }
+		
 	}
 	#endregion
 
 	#region Methods
-	private void UpdateMovement()
-	{
-        if(_isClimbing)
-		{
-            _rigidbody.velocity = new Vector2(_movement.x * _climbSpeed, _movement.y * _climbSpeed);
-        }
-        else
-		{
-            Vector2 newVelocity = _rigidbody.velocity;
-            if (_movement.Equals(Vector2.zero))
-            {
-                newVelocity.x = 0;
-                _rigidbody.velocity = Vector2.SmoothDamp(_rigidbody.velocity, newVelocity, ref _refVelocity, _smoothDamping);
-                _animator.SetFloat(_animSpeedFloat, 0);
-                return;
-            }
-            newVelocity.x = _movement.x * _speed;
-            _rigidbody.velocity = newVelocity;
 
-            if (_isGrounded)
-            {
-                _animator.SetFloat(_animSpeedFloat, Mathf.Abs(_rigidbody.velocity.x));
-            }
-        }
+	private void UpdateDirection()
+	{
+		//update sprite flipped
+		if (!_isFlipped)
+		{
+			_transform.localScale = Vector3.one;
+			_launchPosition = new Vector3(transform.position.x + _launchOffset.x, transform.position.y - _launchOffset.y);
+		}
+		else
+		{
+			_transform.localScale = _flippedScale;
+			_launchPosition = new Vector3(transform.position.x - _launchOffset.x, transform.position.y - _launchOffset.y);
+		}
 	}
 
-    private void UpdateDirection()
+	private void UpdateJump()
 	{
-        //update sprite flipped
-        if (_movement.x > 0.0f)
-            _transform.localScale = Vector3.one;
-        else if (_movement.x < 0.0f)
-            _transform.localScale = _flippedScale;
-	}
-
-    private void UpdateJump()
-	{
-        if(_jumpInput)
+		if (_stateMachine.GetCurrentStateType() == typeof(PlayerDamagedState))
+		{
+            _animator.SetFloat(_animVerticalSpeedFloat, 0);
+            return;
+        }
+			
+		if (_jumpInput)
 		{
             _jumpInput = false;
             _rigidbody.AddForce(new Vector2(0, _jumpForce));
@@ -215,9 +235,9 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private void UpdateFriction()
 	{
-        if(_isGrounded && _movement.Equals(Vector2.zero))
+        if(IsGrounded && _movement.Equals(Vector2.zero))
         {
-            _bodyCollider.GetContacts(_bodyContacts);
+            _bodyCollider.GetContacts(_bodyContactsFilter, _bodyContacts);
             if(0.7 < _bodyContacts[0].normal.y && _bodyContacts[0].normal.y < 1)
 			{
                 _dynamicPhysics.friction = 0.01f;
@@ -244,19 +264,32 @@ public class PlayerController : MonoBehaviour, IDamagable
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(startPos, _groundCheckBox);
 	}
-	#endregion
+    #endregion
 
-	#region IDamagable Interfaces
-	public void TakeDamage(int damage)
+    #region IDamagable Interfaces
+    public void TakeDamage(int damage)
 	{
-        _hp -= damage;
-        if(_hp <= 0)
-		{
-            _hp = 0;
-            Debug.Log("YOU DIED");
-		}
+        if (_isInvincible)
+            return;
 
-        _animator.SetTrigger(_animHurtTrigger);
+        _healthCount -= damage;
+        _isInvincible = true;
+        _stateMachine.ChangeState<PlayerDamagedState>();
+
+        if (!IsAlive)
+        {
+            _healthCount = 0;
+            Debug.Log("YOU DIED");
+            return;
+        }
+
+        StartCoroutine(ResetInvincibility(_invincibleTime));
 	}
-	#endregion
+
+    private IEnumerator ResetInvincibility(float coolTime)
+	{
+        yield return new WaitForSeconds(coolTime);
+        _isInvincible = false;
+	}
+    #endregion
 }
