@@ -32,13 +32,10 @@ public class PlayerDamagedState : State<PlayerController>
 			_stateMachine.ChangeState<PlayerIdleState>();
 		});
 
-		//add force to reverse direction
 		Vector2 reverseVec = Vector2.zero;
 		reverseVec.x = _owner.IsFlipped ? 1.0f : -1.0f;
 		reverseVec.y = 5.0f;
 		_rigidbody.velocity = Vector2.zero;
 		_rigidbody.AddForce(reverseVec * 20);
-
-		//makes player undamaged for a certain period of time
 	}
 }

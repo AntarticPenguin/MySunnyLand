@@ -13,7 +13,7 @@ public class PlayerClimbState : State<PlayerController>
 
 	ContactFilter2D filter;
 	List<Collider2D> results = new List<Collider2D>();
-	#endregion
+	#endregion	
 
 	public override void OnInitialized()
 	{
@@ -29,10 +29,9 @@ public class PlayerClimbState : State<PlayerController>
 	public override void OnStart()
 	{
 		Debug.Log("Climb State");
-		Physics2D.IgnoreLayerCollision(
-			LayerMask.NameToLayer(TagAndLayer.Layer.Player),
-			LayerMask.NameToLayer(TagAndLayer.Layer.Ground)
-		);
+		UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
+			TagAndLayer.Layer.Ground);
+		
 
 		_owner.IsClimbing = true;
 		_animator.SetBool(_animClimbBool, true);
@@ -43,20 +42,15 @@ public class PlayerClimbState : State<PlayerController>
 	{
 		_animator.SetFloat(_animClimbSpeed, Mathf.Clamp(_rigidbody.velocity.magnitude, 0, 1));
 
-		int count = _rigidbody.OverlapCollider(filter, results);
-		if (count > 0)
-			Debug.Log("is touching");
-		else if (count == 0)
-			Debug.Log("nothing");
+		int overlapCount = _rigidbody.OverlapCollider(filter, results);
 
 		if (_owner.Movement.y <= -1.0f && _owner.IsGrounded)
 		{
 			//절벽을 타고 내려와 땅에 닿았을 경우
 			_stateMachine.ChangeState<PlayerIdleState>();
 		}
-		else if(_owner.Movement.y >= 1.0f && count == 0 && _owner.IsGrounded)
+		else if(_owner.Movement.y >= 1.0f && overlapCount == 0 && _owner.IsGrounded)
 		{
-
 			_stateMachine.ChangeState<PlayerIdleState>();
 		}
 	}
@@ -68,11 +62,8 @@ public class PlayerClimbState : State<PlayerController>
 
 	public override void OnExit()
 	{
-		Physics2D.IgnoreLayerCollision(
-			LayerMask.NameToLayer(TagAndLayer.Layer.Player),
-			LayerMask.NameToLayer(TagAndLayer.Layer.Ground),
-			false
-		);
+		UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
+			TagAndLayer.Layer.Ground, false);
 
 		_owner.IsClimbing = false;
 		_rigidbody.gravityScale = 1.0f;

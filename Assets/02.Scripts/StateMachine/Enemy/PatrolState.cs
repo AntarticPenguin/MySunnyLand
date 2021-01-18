@@ -4,9 +4,14 @@ using UnityEngine;
 
 public class PatrolState : State<EnemyController>
 {
+	#region Variables
+	private Transform _transform;
+	private int _layerMask;
+	#endregion
 	public override void OnInitialized()
 	{
-		
+		_transform = _owner.transform;
+		_layerMask = LayerMask.GetMask(TagAndLayer.Layer.Player);
 	}
 
 	public override void OnStart()
@@ -16,11 +21,11 @@ public class PatrolState : State<EnemyController>
 
 	public override void Update(float deltaTime)
 	{
-		
-	}
-
-	public override void OnExit()
-	{
-		
+		Collider2D collider = Physics2D.OverlapCircle(_transform.position, _owner.DetectRange, _layerMask);
+		if(collider != null)
+		{
+			_owner.AttackTarget = collider.transform;
+			_stateMachine.ChangeState<ChaseState>();
+		}
 	}
 }

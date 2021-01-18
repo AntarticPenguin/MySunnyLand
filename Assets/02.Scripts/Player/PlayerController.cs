@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour, IDamagable
     private ContactFilter2D _bodyContactsFilter;
     private float _previousFriction;
     private Vector3 _flippedScale = new Vector3(-1.0f, 1.0f, 1.0f);
+    private LayerMask _groundLayerMask;
 
     private StateMachine<PlayerController> _stateMachine;
 
@@ -72,16 +73,17 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     public float Speed => _speed;
     public float ClimbSpeed => _climbSpeed;
-	#endregion
+    #endregion
 
-	#region Unity Methods
-	// Start is called before the first frame update
-	void Start()
+    #region Unity Methods
+    // Start is called before the first frame update
+    void Start()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
         _transform = transform;
         _bodyContacts = new ContactPoint2D[2];
-        _bodyContactsFilter.SetLayerMask(LayerMask.GetMask(TagAndLayer.Layer.Ground));
+        _bodyContactsFilter.SetLayerMask(LayerMask.GetMask(TagAndLayer.Layer.Ground) |
+            LayerMask.GetMask(TagAndLayer.Layer.Platform));
         _previousFriction = _dynamicPhysics.friction;
 
         _stateMachine = new StateMachine<PlayerController>(this, new PlayerIdleState());
@@ -95,6 +97,8 @@ public class PlayerController : MonoBehaviour, IDamagable
 
         _isInvincible = false;
         _invincibleTime = 3.0f;
+
+        _groundLayerMask = LayerMask.GetMask(TagAndLayer.Layer.Ground) | LayerMask.GetMask(TagAndLayer.Layer.Platform);
     }
 
     // Update is called once per frame
@@ -219,7 +223,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 	{
         Vector3 startPos = _bodyCollider.bounds.center;
         startPos.y -= _bodyCollider.bounds.extents.y;
-        Collider2D hitCollider = Physics2D.OverlapBox(startPos, _groundCheckBox, 0, LayerMask.GetMask(TagAndLayer.Layer.Ground));
+        Collider2D hitCollider = Physics2D.OverlapBox(startPos, _groundCheckBox, 0, _groundLayerMask);
 
         if (hitCollider != null)
 		{
@@ -238,7 +242,7 @@ public class PlayerController : MonoBehaviour, IDamagable
         if(IsGrounded && _movement.Equals(Vector2.zero))
         {
             _bodyCollider.GetContacts(_bodyContactsFilter, _bodyContacts);
-            if(0.7 < _bodyContacts[0].normal.y && _bodyContacts[0].normal.y < 1)
+            if(0.7 < _bodyContacts[0].normal.y && _bodyContacts[0].normal.y <= 1)
 			{
                 _dynamicPhysics.friction = 0.01f;
             }
@@ -288,8 +292,12 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private IEnumerator ResetInvincibility(float coolTime)
 	{
+        UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
+            TagAndLayer.Layer.Enemy);
         yield return new WaitForSeconds(coolTime);
         _isInvincible = false;
-	}
+        UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
+            TagAndLayer.Layer.Enemy, false);
+    }
     #endregion
 }

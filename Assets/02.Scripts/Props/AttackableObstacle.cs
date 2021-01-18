@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AttackableObstacle : Obstacle, IAttackable
+public class AttackableObstacle : Obstacle
 {
     #region Variables
-    public int _damage;
+    [SerializeField] private int _damage;
+	#endregion
 
+	#region Properities
+	public int Damage => (_damage);
 	#endregion
 
 	#region Unity Methods

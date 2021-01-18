@@ -26,5 +26,6 @@ public class TagAndLayer
 		public const string Cliff = "Cliff";
 		public const string Player = "Player";
 		public const string Enemy = "Enemy";
+		public const string Platform = "Platform";
 	}
 }
