@@ -44,14 +44,20 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: BackgroundTile
+    uniqueID: 2424550615
+    locked: 0
   - name: CliffTile
     uniqueID: 2589954403
     locked: 0
   - name: GroundTile
     uniqueID: 4077252065
     locked: 0
-  - name: OnewayGroundTile
+  - name: PlatformTile
     uniqueID: 3160393651
+    locked: 0
+  - name: ItemTile
+    uniqueID: 2660902075
     locked: 0
   - name: Player
     uniqueID: 1462075091

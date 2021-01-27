@@ -52,8 +52,23 @@ public class PlayerMoveState : State<PlayerController>
 
 			return;
 		}
-		newVelocity.x = movement.x * _speed;
-		_rigidbody.velocity = newVelocity;
+
+		if(_owner.IsGrounded && !_owner.IsOnSlope)
+		{
+			newVelocity.Set(movement.x * _speed, 0.0f);
+			_rigidbody.velocity = newVelocity;
+		}
+		else if(_owner.IsGrounded && _owner.IsOnSlope)
+		{
+			newVelocity.Set(_speed * _owner.SlopeNormalPerp.x * -movement.x, _speed * _owner.SlopeNormalPerp.y * -movement.x);
+			_rigidbody.velocity = newVelocity;
+		}
+		else
+		{
+			newVelocity.Set(movement.x * _speed, _rigidbody.velocity.y);
+			_rigidbody.velocity = newVelocity;
+		}
+
 	}
 
 }

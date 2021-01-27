@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Pathfinding;
 
 public class EnemyController : MonoBehaviour, IDamagable
 {
@@ -14,6 +15,8 @@ public class EnemyController : MonoBehaviour, IDamagable
 	[SerializeField] private int _damage;
 	private StateMachine<EnemyController> _stateMachine;
 	private Transform _attackTarget;
+	private Rigidbody2D _rigidbody;
+	private Transform _transform;
 
 	//pathfinding ai
 	[Header("PATHFINDING AI")]
@@ -21,6 +24,8 @@ public class EnemyController : MonoBehaviour, IDamagable
 	[SerializeField] private float _nextWaypointDistance = 0.7f;
 	[SerializeField] private float _slowDownDistance = 0.6f;
 	[SerializeField] private float _endReachedDistance = 0.2f;
+
+	public Transform[] _waypoints;
 	#endregion
 
 	#region Properties
@@ -47,12 +52,24 @@ public class EnemyController : MonoBehaviour, IDamagable
 		_stateMachine.AddState(new ChaseState());
 		_stateMachine.AddState(new AttackState());
 		_stateMachine.AddState(new DeadState());
+
+		_rigidbody = GetComponent<Rigidbody2D>();
+		_transform = transform;
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
 		_stateMachine.Update(Time.deltaTime);
+
+		if(_rigidbody.velocity.x <= -0.01f)
+		{
+			_transform.localScale = new Vector3(1f, 1f, 1f);
+		}
+		else if(_rigidbody.velocity.x >= 0.01f)
+		{
+			_transform.localScale = new Vector3(-1f, 1f, 1f);
+		}
 	}
 
 	private void FixedUpdate()

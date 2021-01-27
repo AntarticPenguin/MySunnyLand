@@ -27,13 +27,20 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private bool _isFlipped;
     private Vector2 _movement;
-    public bool _isGrounded;
-    public bool _isClimbing;
+    [SerializeField] private bool _isGrounded;
+    [SerializeField] private bool _isClimbing;
 
     //jump
     public float _jumpForce = 300.0f;
 
     private bool _jumpInput;
+
+    //check slope
+    private Vector2 _slopeNormalPerp;       //경사와 수직인 벡터
+    private float _slopeDownAngle;
+    private float _slopeDownAnglePrev;
+    [SerializeField] private float _slopeCheckDistance = 0.5f;
+    [SerializeField] private bool _isOnSlope;
 
     //attack
     public GameObject _projectilePrefab;
@@ -73,6 +80,14 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     public float Speed => _speed;
     public float ClimbSpeed => _climbSpeed;
+    public bool IsOnSlope => _isOnSlope;
+    public ref Vector2 SlopeNormalPerp
+	{
+        get
+		{
+            return ref _slopeNormalPerp;
+		}
+	}
     #endregion
 
     #region Unity Methods
@@ -155,6 +170,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 	private void FixedUpdate()
 	{
         CheckGround();
+        CheckVerticalSlope();
         UpdateFriction();
         UpdateDirection();
         UpdateJump();
@@ -213,7 +229,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 		if (_jumpInput)
 		{
             _jumpInput = false;
-            _rigidbody.AddForce(new Vector2(0, _jumpForce));
+            _rigidbody.AddForce(Vector2.up * _jumpForce);
 		}
 
         _animator.SetFloat(_animVerticalSpeedFloat, _rigidbody.velocity.y);
@@ -237,14 +253,45 @@ public class PlayerController : MonoBehaviour, IDamagable
         _animator.SetBool(_animGroundedBool, _isGrounded);
     }
 
+    private void CheckVerticalSlope()
+	{
+        Vector2 checkPos = _bodyCollider.bounds.center - new Vector3(0.0f, _bodyCollider.bounds.extents.y);
+        RaycastHit2D hit = Physics2D.Raycast(checkPos, Vector2.down, _slopeCheckDistance,
+            _groundLayerMask);
+#if UNITY_EDITOR
+		Debug.DrawRay(checkPos, Vector2.down, Color.red);
+#endif
+
+		if (hit)
+		{
+			_slopeNormalPerp = Vector2.Perpendicular(hit.normal).normalized;
+			_slopeDownAngle = Vector2.Angle(hit.normal, Vector2.up);
+
+            if(_slopeDownAngle >= 0 && _slopeDownAngle != _slopeDownAnglePrev)
+			{
+                _isOnSlope = true;
+			}
+            else
+			{
+                _isOnSlope = false;
+            }
+            _slopeDownAngle = _slopeDownAnglePrev;
+
+#if UNITY_EDITOR
+			Debug.DrawRay(hit.point, _slopeNormalPerp, Color.red);
+			Debug.DrawRay(hit.point, hit.normal, Color.green);
+#endif
+		}
+	}
+
     private void UpdateFriction()
 	{
         if(IsGrounded && _movement.Equals(Vector2.zero))
         {
             _bodyCollider.GetContacts(_bodyContactsFilter, _bodyContacts);
-            if(0.7 < _bodyContacts[0].normal.y && _bodyContacts[0].normal.y <= 1)
+            if(0.7f < _bodyContacts[0].normal.y && _bodyContacts[0].normal.y <= 1.0f)
 			{
-                _dynamicPhysics.friction = 0.01f;
+				_dynamicPhysics.friction = 0.01f;
             }
         }
         else
@@ -261,7 +308,7 @@ public class PlayerController : MonoBehaviour, IDamagable
         }
     }
 
-	private void OnDrawGizmos()
+    private void OnDrawGizmos()
 	{
         Vector3 startPos = _bodyCollider.bounds.center;
         startPos.y -= _bodyCollider.bounds.extents.y;
