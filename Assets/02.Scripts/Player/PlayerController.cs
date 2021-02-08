@@ -34,6 +34,8 @@ public class PlayerController : MonoBehaviour, IDamagable
     public float _jumpForce = 300.0f;
 
     private bool _jumpInput;
+    [SerializeField] private bool _isJumping;
+    [SerializeField] private bool _isFalling;
 
     //check slope
     private Vector2 _slopeNormalPerp;       //경사와 수직인 벡터
@@ -54,7 +56,7 @@ public class PlayerController : MonoBehaviour, IDamagable
     private int _animVerticalSpeedFloat;
 
     //status
-    public int _healthCount;
+    public PlayerDataObject _playerData;
     public float _invincibleTime;
 
     private bool _isInvincible;
@@ -69,7 +71,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 		}
 	}
 
-	public bool IsAlive => (_healthCount > 0);
+	public bool IsAlive => (_playerData._hp >= 0);
     public bool IsFlipped => _isFlipped;
     public bool IsGrounded => _isGrounded;
     public bool IsClimbing
@@ -77,6 +79,8 @@ public class PlayerController : MonoBehaviour, IDamagable
         get { return _isClimbing; }
         set { _isClimbing = value; }
     }
+    public bool IsJumping => _isJumping;
+    public bool IsFalling => _isFalling;
 
     public float Speed => _speed;
     public float ClimbSpeed => _climbSpeed;
@@ -188,7 +192,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 
 	private void OnTriggerStay2D(Collider2D collision)
 	{
-		if (collision.gameObject.layer == LayerMask.NameToLayer(TagAndLayer.Layer.Cliff) &&
+		if (!IsClimbing && collision.gameObject.layer == LayerMask.NameToLayer(TagAndLayer.Layer.Cliff) &&
 				  1.0f <= _movement.y)
 		{
             _stateMachine.ChangeState<PlayerClimbState>();
@@ -197,7 +201,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 
 	private void OnTriggerExit2D(Collider2D collision)
 	{
-		
+
 	}
 	#endregion
 
@@ -232,11 +236,21 @@ public class PlayerController : MonoBehaviour, IDamagable
             _rigidbody.AddForce(Vector2.up * _jumpForce);
 		}
 
+        if (_rigidbody.velocity.y < 0.0f)
+            _isFalling = true;
+        else if (_rigidbody.velocity.y >= 0.0f)
+            _isFalling = false;
+
         _animator.SetFloat(_animVerticalSpeedFloat, _rigidbody.velocity.y);
 	}
 
     private void CheckGround()
 	{
+        if (IsJumping && !IsFalling)
+        {
+            return;
+        }
+
         Vector3 startPos = _bodyCollider.bounds.center;
         startPos.y -= _bodyCollider.bounds.extents.y;
         Collider2D hitCollider = Physics2D.OverlapBox(startPos, _groundCheckBox, 0, _groundLayerMask);
@@ -244,10 +258,12 @@ public class PlayerController : MonoBehaviour, IDamagable
         if (hitCollider != null)
 		{
             _isGrounded = true;
+            _isJumping = false;
         }
         else
 		{
             _isGrounded = false;
+            _isJumping = true;
         }
 
         _animator.SetBool(_animGroundedBool, _isGrounded);
@@ -323,13 +339,12 @@ public class PlayerController : MonoBehaviour, IDamagable
         if (_isInvincible)
             return;
 
-        _healthCount -= damage;
+        _playerData.DecreaseHp(damage);
         _isInvincible = true;
         _stateMachine.ChangeState<PlayerDamagedState>();
 
         if (!IsAlive)
         {
-            _healthCount = 0;
             Debug.Log("YOU DIED");
             return;
         }

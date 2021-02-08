@@ -47,6 +47,9 @@ TagManager:
   - name: BackgroundTile
     uniqueID: 2424550615
     locked: 0
+  - name: MiddlegroundTile
+    uniqueID: 2243971807
+    locked: 0
   - name: CliffTile
     uniqueID: 2589954403
     locked: 0

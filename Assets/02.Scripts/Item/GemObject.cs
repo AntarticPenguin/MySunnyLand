@@ -5,6 +5,7 @@ using UnityEngine;
 public class GemObject : MonoBehaviour, IInteractable
 {
     #region Variables
+    public PlayerDataObject _playerDataObject;
     public int _scorePoint;
     public GameObject _effectPrefab;
 
@@ -33,7 +34,7 @@ public class GemObject : MonoBehaviour, IInteractable
             Destroy(effect);
         });
 
-        GameManager.Instance.AddScore(_scorePoint);
+        _playerDataObject.AddScore(_scorePoint);
         Destroy(gameObject);
     }
     #endregion

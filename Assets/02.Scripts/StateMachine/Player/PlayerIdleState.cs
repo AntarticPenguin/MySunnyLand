@@ -19,7 +19,6 @@ public class PlayerIdleState : State<PlayerController>
 
 	public override void OnStart()
 	{
-		Debug.Log("Idle State");
 		_animator.Play(_animIdleHash);
 	}
 

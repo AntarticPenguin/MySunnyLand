@@ -22,7 +22,7 @@ public class PlayerMoveState : State<PlayerController>
 
 	public override void OnStart()
 	{
-		Debug.Log("Move State");
+		
 	}
 
 	public override void Update(float deltaTime)
@@ -55,20 +55,14 @@ public class PlayerMoveState : State<PlayerController>
 
 		if(_owner.IsGrounded && !_owner.IsOnSlope)
 		{
-			newVelocity.Set(movement.x * _speed, 0.0f);
+			newVelocity.Set(movement.x * _speed, _rigidbody.velocity.y);
 			_rigidbody.velocity = newVelocity;
 		}
-		else if(_owner.IsGrounded && _owner.IsOnSlope)
+		else if(_owner.IsGrounded && _owner.IsOnSlope && !_owner.IsJumping)
 		{
 			newVelocity.Set(_speed * _owner.SlopeNormalPerp.x * -movement.x, _speed * _owner.SlopeNormalPerp.y * -movement.x);
 			_rigidbody.velocity = newVelocity;
 		}
-		else
-		{
-			newVelocity.Set(movement.x * _speed, _rigidbody.velocity.y);
-			_rigidbody.velocity = newVelocity;
-		}
-
 	}
 
 }

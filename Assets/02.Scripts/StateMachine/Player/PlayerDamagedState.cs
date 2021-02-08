@@ -23,12 +23,10 @@ public class PlayerDamagedState : State<PlayerController>
 
 	public override void OnStart()
 	{
-		Debug.Log("Damaged State");
-
 		_animator.SetTrigger(_animHurtTrigger);
 		_animationCallback.InitEvent(null, () =>
 		{
-			Debug.Log("ANimatino END");
+			//Debug.Log("ANimatino END");
 			_stateMachine.ChangeState<PlayerIdleState>();
 		});
 

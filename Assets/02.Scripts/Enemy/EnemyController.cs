@@ -7,6 +7,7 @@ public class EnemyController : MonoBehaviour, IDamagable
 {
 	#region Variables
 	public float _healthCount;
+	public PlayerDataObject _scoreObject;
 	public int _killPoint;
 	public GameObject _deathEffectPrefab;
 	public float _detectRange = 1.5f;
@@ -29,7 +30,7 @@ public class EnemyController : MonoBehaviour, IDamagable
 	#endregion
 
 	#region Properties
-	public float DetectRange => ( _detectRange );
+	public float DetectRange => (_detectRange);
 	public Transform AttackTarget
 	{
 		get { return _attackTarget; }
@@ -62,11 +63,11 @@ public class EnemyController : MonoBehaviour, IDamagable
 	{
 		_stateMachine.Update(Time.deltaTime);
 
-		if(_rigidbody.velocity.x <= -0.01f)
+		if (_rigidbody.velocity.x <= -0.01f)
 		{
 			_transform.localScale = new Vector3(1f, 1f, 1f);
 		}
-		else if(_rigidbody.velocity.x >= 0.01f)
+		else if (_rigidbody.velocity.x >= 0.01f)
 		{
 			_transform.localScale = new Vector3(-1f, 1f, 1f);
 		}
@@ -105,7 +106,7 @@ public class EnemyController : MonoBehaviour, IDamagable
 			Debug.Log("ENEMY DIED");
 
 			_healthCount = 0;
-			GameManager.Instance.AddScore(_killPoint);
+			_scoreObject.AddScore(_killPoint);
 			_stateMachine.ChangeState<DeadState>();
 		}
 	}
