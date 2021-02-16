@@ -6,22 +6,23 @@ using Pathfinding;
 public class EnemyController : MonoBehaviour, IDamagable
 {
 	#region Variables
-	public float _healthCount;
-	public PlayerDataObject _scoreObject;
+	public PlayerDataObject _playerDataObject;
+	public EnemyDataObject _enemyDataObject;
 	public int _killPoint;
 	public GameObject _deathEffectPrefab;
 	public float _detectRange = 1.5f;
 
-
-	[SerializeField] private int _damage;
 	private StateMachine<EnemyController> _stateMachine;
 	private Transform _attackTarget;
 	private Rigidbody2D _rigidbody;
 	private Transform _transform;
 
+	private int _hp;
+	private int _damage;
+	private float _speed;
+
 	//pathfinding ai
 	[Header("PATHFINDING AI")]
-	[SerializeField] private float _speed = 100f;
 	[SerializeField] private float _nextWaypointDistance = 0.7f;
 	[SerializeField] private float _slowDownDistance = 0.6f;
 	[SerializeField] private float _endReachedDistance = 0.2f;
@@ -37,7 +38,7 @@ public class EnemyController : MonoBehaviour, IDamagable
 		set { _attackTarget = value; }
 	}
 
-	public bool IsAlive => (_healthCount > 0);
+	public bool IsAlive => (_hp > 0);
 	public float Speed => (_speed);
 	public float NextWaypointDistance => (_nextWaypointDistance);
 	public float SlowDownDistance => (_slowDownDistance);
@@ -46,16 +47,16 @@ public class EnemyController : MonoBehaviour, IDamagable
 	#endregion
 
 	#region Unity Methods
-	// Start is called before the first frame update
-	void Start()
+	protected virtual void Awake()
 	{
-		_stateMachine = new StateMachine<EnemyController>(this, new PatrolState());
-		_stateMachine.AddState(new ChaseState());
-		_stateMachine.AddState(new AttackState());
-		_stateMachine.AddState(new DeadState());
+		_hp = _enemyDataObject.Hp;
+		_damage = _enemyDataObject.Damage;
+		_speed = _enemyDataObject.Speed;
 
 		_rigidbody = GetComponent<Rigidbody2D>();
 		_transform = transform;
+
+		InitState();
 	}
 
 	// Update is called once per frame
@@ -95,18 +96,26 @@ public class EnemyController : MonoBehaviour, IDamagable
 
 	#endregion
 
+	#region Methods
+	protected virtual void InitState()
+	{
+		Debug.Log("Test Init State");
+		_stateMachine = new StateMachine<EnemyController>(this, new PatrolState());
+		_stateMachine.AddState(new ChaseState());
+		_stateMachine.AddState(new AttackState());
+		_stateMachine.AddState(new DeadState());
+	}
+	#endregion
+
 	#region IDamagable Interfaces
 	public void TakeDamage(int damage)
 	{
-		_healthCount -= damage;
-		Debug.Log("Take Damage. Remain HP: " + _healthCount);
+		_hp -= damage;
 
 		if (!IsAlive)
 		{
-			Debug.Log("ENEMY DIED");
-
-			_healthCount = 0;
-			_scoreObject.AddScore(_killPoint);
+			_hp = 0;
+			_playerDataObject.AddScore(_killPoint);
 			_stateMachine.ChangeState<DeadState>();
 		}
 	}

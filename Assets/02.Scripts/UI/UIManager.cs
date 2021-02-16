@@ -27,8 +27,8 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 	private void InitUI()
 	{
 		UpdateScore(_playerDataObject.TotalScore);
-		UpdateHp(_playerDataObject._hp);
-		UpdateLife(_playerDataObject._life);
+		UpdateHp(_playerDataObject.Hp);
+		UpdateLife(_playerDataObject.Life);
 	}
 
 	private void UpdateScore(int score)
@@ -38,6 +38,8 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 
 	private void UpdateHp(int hp)
 	{
+		if (hp < 0)
+			hp = 0;
 		_hpText.text = "Hp: " + hp.ToString();
 	}
 

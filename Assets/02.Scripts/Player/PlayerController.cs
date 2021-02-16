@@ -20,15 +20,17 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private StateMachine<PlayerController> _stateMachine;
 
-    //movement
+    //stat
     public float _speed = 3.0f;
     public float _smoothDamping = 0.05f;
     public float _climbSpeed = 1.5f;
 
-    private bool _isFlipped;
-    private Vector2 _movement;
+    [SerializeField] private int _initialLife;
+    [SerializeField] private int _initialHp;
     [SerializeField] private bool _isGrounded;
     [SerializeField] private bool _isClimbing;
+    private bool _isFlipped;
+    private Vector2 _movement;
 
     //jump
     public float _jumpForce = 300.0f;
@@ -71,7 +73,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 		}
 	}
 
-	public bool IsAlive => (_playerData._hp >= 0);
+	public bool IsAlive => (_playerData.Hp >= 0);
     public bool IsFlipped => _isFlipped;
     public bool IsGrounded => _isGrounded;
     public bool IsClimbing
@@ -95,20 +97,14 @@ public class PlayerController : MonoBehaviour, IDamagable
     #endregion
 
     #region Unity Methods
-    // Start is called before the first frame update
-    void Start()
-    {
+    void Awake()
+	{
         _rigidbody = GetComponent<Rigidbody2D>();
         _transform = transform;
         _bodyContacts = new ContactPoint2D[2];
         _bodyContactsFilter.SetLayerMask(LayerMask.GetMask(TagAndLayer.Layer.Ground) |
             LayerMask.GetMask(TagAndLayer.Layer.Platform));
         _previousFriction = _dynamicPhysics.friction;
-
-        _stateMachine = new StateMachine<PlayerController>(this, new PlayerIdleState());
-        _stateMachine.AddState(new PlayerMoveState());
-        _stateMachine.AddState(new PlayerDamagedState());
-        _stateMachine.AddState(new PlayerClimbState());
 
         _animator = GetComponent<Animator>();
         _animGroundedBool = Animator.StringToHash(AnimatorKey.Grounded);
@@ -118,6 +114,9 @@ public class PlayerController : MonoBehaviour, IDamagable
         _invincibleTime = 3.0f;
 
         _groundLayerMask = LayerMask.GetMask(TagAndLayer.Layer.Ground) | LayerMask.GetMask(TagAndLayer.Layer.Platform);
+
+        InitPlayerData();
+        InitState();
     }
 
     // Update is called once per frame
@@ -322,6 +321,19 @@ public class PlayerController : MonoBehaviour, IDamagable
             _bodyCollider.enabled = false;
             _bodyCollider.enabled = true;
         }
+    }
+
+    private void InitPlayerData()
+	{
+        _playerData.Initialize(_initialLife, _initialHp);
+	}
+
+    private void InitState()
+	{
+        _stateMachine = new StateMachine<PlayerController>(this, new PlayerIdleState());
+        _stateMachine.AddState(new PlayerMoveState());
+        _stateMachine.AddState(new PlayerDamagedState());
+        _stateMachine.AddState(new PlayerClimbState());
     }
 
     private void OnDrawGizmos()

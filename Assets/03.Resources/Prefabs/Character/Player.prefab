@@ -73,7 +73,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1462075091
-  m_SortingLayer: 6
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 72de0c64f2c6a498096698322c976a67, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -123,14 +123,18 @@ MonoBehaviour:
   _speed: 3
   _smoothDamping: 0.05
   _climbSpeed: 1.5
+  _initialLife: 5
+  _initialHp: 5
   _isGrounded: 0
   _isClimbing: 0
   _jumpForce: 400
+  _isJumping: 0
+  _isFalling: 0
   _slopeCheckDistance: 0.5
   _isOnSlope: 0
   _projectilePrefab: {fileID: 8180395763422695534, guid: 40cb9273e061ec849978bf2511ce28df,
     type: 3}
-  _healthCount: 100
+  _playerData: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
   _invincibleTime: 2
 --- !u!50 &8746968186997180258
 Rigidbody2D:

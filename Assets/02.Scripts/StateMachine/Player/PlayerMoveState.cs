@@ -15,19 +15,19 @@ public class PlayerMoveState : State<PlayerController>
 	{
 		_rigidbody = _owner.GetComponent<Rigidbody2D>();
 		_animator = _owner.GetComponent<Animator>();
-		_animSpeedFloat = Animator.StringToHash(AnimatorKey.Speed);;
+		_animSpeedFloat = Animator.StringToHash(AnimatorKey.Speed); ;
 		_speed = _owner.Speed;
-		
+
 	}
 
 	public override void OnStart()
 	{
-		
+
 	}
 
 	public override void Update(float deltaTime)
 	{
-		if(_owner.IsGrounded)
+		if (_owner.IsGrounded)
 		{
 			_animator.SetFloat(_animSpeedFloat, Mathf.Abs(_rigidbody.velocity.x));
 		}
@@ -44,7 +44,7 @@ public class PlayerMoveState : State<PlayerController>
 			_rigidbody.velocity = newVelocity;
 			_animator.SetFloat(_animSpeedFloat, 0);
 
-			if(_owner.IsGrounded && _rigidbody.velocity.Equals(Vector2.zero))
+			if (_owner.IsGrounded && _rigidbody.velocity.Equals(Vector2.zero))
 			{
 				_stateMachine.ChangeState<PlayerIdleState>();
 				return;
@@ -53,16 +53,28 @@ public class PlayerMoveState : State<PlayerController>
 			return;
 		}
 
-		if(_owner.IsGrounded && !_owner.IsOnSlope)
+		if (_owner.IsGrounded && !_owner.IsOnSlope)
 		{
 			newVelocity.Set(movement.x * _speed, _rigidbody.velocity.y);
-			_rigidbody.velocity = newVelocity;
 		}
-		else if(_owner.IsGrounded && _owner.IsOnSlope && !_owner.IsJumping)
+		else if (_owner.IsGrounded && _owner.IsOnSlope && !_owner.IsJumping)
 		{
 			newVelocity.Set(_speed * _owner.SlopeNormalPerp.x * -movement.x, _speed * _owner.SlopeNormalPerp.y * -movement.x);
-			_rigidbody.velocity = newVelocity;
 		}
+
+		if (_owner.IsJumping)
+		{
+			if (_rigidbody.velocity.x > 0 && movement.x < 0)
+			{
+				newVelocity.x -= _speed * fixedDeltaTime;
+			}
+			else if (_rigidbody.velocity.x < 0 && movement.x > 0)
+			{
+				newVelocity.x += _speed * fixedDeltaTime;
+			}
+		}
+
+		_rigidbody.velocity = newVelocity;
 	}
 
 }

@@ -7,8 +7,8 @@ using System;
 public class PlayerDataObject : ScriptableObject
 {
 	#region Variables
-	public int _life;
-	public int _hp;
+	private int _life;
+	private int _hp;
 
 	private int _totalScore;
 	[NonSerialized] private bool _isInitialized = false;
@@ -20,19 +20,27 @@ public class PlayerDataObject : ScriptableObject
 	#endregion
 
 	#region Properties
+	public int Life => _life;
+	public int Hp => _hp;
 	public int TotalScore => _totalScore;
 	#endregion
 
 	private void OnEnable()
 	{
-		Debug.Log("Init");
 		if (_isInitialized)
 			return;
 
 		_isInitialized = true;
 		_totalScore = 0;
-		_life = 5;
-		_hp = 3;
+	}
+
+	/// <summary>
+	/// Initialized by Player Class
+	/// </summary>
+	public void Initialize(int life, int hp)
+	{
+		_life = life;
+		_hp = hp;
 	}
 
 	public void AddScore(int score)

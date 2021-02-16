@@ -74,7 +74,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1462075091
-  m_SortingLayer: 6
+  m_SortingLayer: 7
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: f240dfd4814d34d55a9b033f3c9d8a60, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -118,14 +118,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf1f81840ab3dea42b8db0faed958af1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _healthCount: 2
-  _scoreObject: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
+  _playerDataObject: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
+  _enemyDataObject: {fileID: 11400000, guid: ae9da67b90fdf6c4bbed7a683b883a47, type: 2}
   _killPoint: 10000
   _deathEffectPrefab: {fileID: 2847825183576034021, guid: d97b8f1d28e8ca447bfffc4c00a17322,
     type: 3}
   _detectRange: 1.75
-  _damage: 2
-  _speed: 100
   _nextWaypointDistance: 0.7
   _slowDownDistance: 0.3
   _endReachedDistance: 0.2
