@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 6147869853572573841}
   - component: {fileID: 6147869853572573854}
   - component: {fileID: 6147869853572573855}
-  - component: {fileID: 6147869853572573845}
   - component: {fileID: 6147869853572573852}
   m_Layer: 11
   m_Name: Eagle
@@ -115,19 +114,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 6147869853572573853}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf1f81840ab3dea42b8db0faed958af1, type: 3}
+  m_Script: {fileID: 11500000, guid: 75fbae0a643175f47a69ef85f79e1e83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _playerDataObject: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
   _enemyDataObject: {fileID: 11400000, guid: ae9da67b90fdf6c4bbed7a683b883a47, type: 2}
-  _killPoint: 10000
+  _killPoint: 300
   _deathEffectPrefab: {fileID: 2847825183576034021, guid: d97b8f1d28e8ca447bfffc4c00a17322,
     type: 3}
-  _detectRange: 1.75
-  _nextWaypointDistance: 0.7
-  _slowDownDistance: 0.3
-  _endReachedDistance: 0.2
   _waypoints: []
+  _detectRange: 1.5
+  _nextWaypointDistance: 0.7
+  _slowDownDistance: 0.6
+  _endReachedDistance: 0.2
 --- !u!50 &6147869853572573854
 Rigidbody2D:
   serializedVersion: 4
@@ -165,22 +164,6 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.26
---- !u!58 &6147869853572573845
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6147869853572573853}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.38
 --- !u!114 &6147869853572573852
 MonoBehaviour:
   m_ObjectHideFlags: 0

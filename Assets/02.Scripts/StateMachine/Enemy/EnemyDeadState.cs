@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DeadState : State<EnemyController>
+public class EnemyDeadState : State<EnemyController>
 {
 	#region Variables
 	SpriteRenderer _spriteRenderer;

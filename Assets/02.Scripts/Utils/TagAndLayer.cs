@@ -1,13 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public enum LayerList
-{
-	GROUND,
-	CLIFF,
-	PLAYER,
-	ENEMY,
-}
 
 public class TagAndLayer
 {
@@ -18,6 +11,9 @@ public class TagAndLayer
 		public const string Item = "Item";
 		public const string Obstacle = "Obstacle";
 		public const string Enemy = "Enemy";
+		public const string DeadZone = "DeadZone";
+		public const string Respawn = "Respawn";
+		public const string VCam = "VCam";
 	}
 	
 	public class Layer

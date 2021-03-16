@@ -4,5 +4,10 @@ using UnityEngine;
 
 public interface IDamagable
 {
+    bool CanBeDamagedByJumpAttack
+	{
+		get;
+	}
+
     void TakeDamage(int damage);
 }

@@ -4726,6 +4726,12 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!4 &1536296390 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8746968186997180256, guid: 96cbdedc37844ad45be6fb63049e6877,
+    type: 3}
+  m_PrefabInstance: {fileID: 593406988}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1609469991
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5143,19 +5149,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 1911024293}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf1f81840ab3dea42b8db0faed958af1, type: 3}
+  m_Script: {fileID: 11500000, guid: 75fbae0a643175f47a69ef85f79e1e83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _playerDataObject: {fileID: 0}
   _enemyDataObject: {fileID: 0}
-  _killPoint: 10000
-  _deathEffectPrefab: {fileID: 2847825183576034021, guid: d97b8f1d28e8ca447bfffc4c00a17322,
-    type: 3}
-  _detectRange: 1.8
+  _killPoint: 0
+  _deathEffectPrefab: {fileID: 0}
+  _waypoints: []
+  _detectRange: 1.5
   _nextWaypointDistance: 0.7
   _slowDownDistance: 0.6
   _endReachedDistance: 0.2
-  _waypoints: []
 --- !u!114 &1911024300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5537,6 +5542,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Follow
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1536296390}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 69b59c16ee64daa4085bf6395d169da6, type: 3}

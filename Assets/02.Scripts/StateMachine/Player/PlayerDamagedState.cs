@@ -23,17 +23,23 @@ public class PlayerDamagedState : State<PlayerController>
 
 	public override void OnStart()
 	{
-		_animator.SetTrigger(_animHurtTrigger);
 		_animationCallback.InitEvent(null, () =>
 		{
 			//Debug.Log("ANimatino END");
 			_stateMachine.ChangeState<PlayerIdleState>();
 		});
 
-		Vector2 reverseVec = Vector2.zero;
-		reverseVec.x = _owner.IsFlipped ? 1.0f : -1.0f;
-		reverseVec.y = 5.0f;
+		_animator.SetTrigger(_animHurtTrigger);
+
+		Vector2 reverseVec = UtilMethods.DegreeToVector2(60.0f);
+		reverseVec.x *= _owner.IsFlipped ? 1.0f : -1.0f;
+		reverseVec.y *= 1.5f;
 		_rigidbody.velocity = Vector2.zero;
-		_rigidbody.AddForce(reverseVec * 20);
+		_rigidbody.AddForce(reverseVec * _owner.ReactionPower);
+	}
+
+	public override void OnExit()
+	{
+		
 	}
 }

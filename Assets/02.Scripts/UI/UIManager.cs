@@ -11,12 +11,11 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 	public Text _scoreText;
 	public Text _hpText;
 	public Text _lifeText;
+	public Text _gameOverText;
 	#endregion
 
-	protected override void Awake()
+	private void Start()
 	{
-		base.Awake();
-
 		_playerDataObject.OnChangedScore += UpdateScore;
 		_playerDataObject.OnChangedHp += UpdateHp;
 		_playerDataObject.OnChangedLife += UpdateLife;
@@ -47,4 +46,11 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 	{
 		_lifeText.text = "Life: " + life.ToString();
 	}
+
+	public void ActiveGameOverUI(bool active)
+	{
+		_gameOverText.gameObject.SetActive(active);
+	}
+
+
 }

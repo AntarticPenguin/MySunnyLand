@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 public class PlayerController : MonoBehaviour, IDamagable
 {
@@ -21,14 +22,13 @@ public class PlayerController : MonoBehaviour, IDamagable
     private StateMachine<PlayerController> _stateMachine;
 
     //stat
-    public float _speed = 3.0f;
-    public float _smoothDamping = 0.05f;
-    public float _climbSpeed = 1.5f;
+    [SerializeField] private float _speed = 3.0f;
+    [SerializeField] private float _climbSpeed = 1.5f;
+    [SerializeField] private int _jumpAttackDamage = 1;
 
-    [SerializeField] private int _initialLife;
-    [SerializeField] private int _initialHp;
     [SerializeField] private bool _isGrounded;
     [SerializeField] private bool _isClimbing;
+    [SerializeField] private float _reactionPower;      //데미지를 받고 튕겨져 나가는 힘
     private bool _isFlipped;
     private Vector2 _movement;
 
@@ -73,7 +73,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 		}
 	}
 
-	public bool IsAlive => (_playerData.Hp >= 0);
+	public bool IsAlive => (_playerData.Hp > 0);
     public bool IsFlipped => _isFlipped;
     public bool IsGrounded => _isGrounded;
     public bool IsClimbing
@@ -81,6 +81,7 @@ public class PlayerController : MonoBehaviour, IDamagable
         get { return _isClimbing; }
         set { _isClimbing = value; }
     }
+
     public bool IsJumping => _isJumping;
     public bool IsFalling => _isFalling;
 
@@ -94,6 +95,9 @@ public class PlayerController : MonoBehaviour, IDamagable
             return ref _slopeNormalPerp;
 		}
 	}
+
+    public float ReactionPower => _reactionPower;
+    public int JumpAttackDamage => _jumpAttackDamage;
     #endregion
 
     #region Unity Methods
@@ -114,9 +118,13 @@ public class PlayerController : MonoBehaviour, IDamagable
         _invincibleTime = 3.0f;
 
         _groundLayerMask = LayerMask.GetMask(TagAndLayer.Layer.Ground) | LayerMask.GetMask(TagAndLayer.Layer.Platform);
-
-        InitPlayerData();
         InitState();
+    }
+
+    void Start()
+	{
+        GameObject VCam = GameObject.FindGameObjectWithTag(TagAndLayer.Tag.VCam);
+        VCam.GetComponent<CinemachineVirtualCamera>().Follow = _transform;
     }
 
     // Update is called once per frame
@@ -124,7 +132,8 @@ public class PlayerController : MonoBehaviour, IDamagable
     {
         _stateMachine.Update(Time.deltaTime);
 
-        if (_stateMachine.GetCurrentStateType() == typeof(PlayerDamagedState))
+        if (_stateMachine.GetCurrentStateType() == typeof(PlayerDamagedState) ||
+            _stateMachine.GetCurrentStateType() == typeof(PlayerDeadState))
             return;
 
         //move
@@ -187,7 +196,11 @@ public class PlayerController : MonoBehaviour, IDamagable
         {
             collision.gameObject.GetComponent<IInteractable>()?.Interact();
         }
-    }
+		else if (collision.gameObject.tag == TagAndLayer.Tag.DeadZone)
+		{
+			_stateMachine.ChangeState<PlayerDeadState>();
+		}
+	}
 
 	private void OnTriggerStay2D(Collider2D collision)
 	{
@@ -196,11 +209,6 @@ public class PlayerController : MonoBehaviour, IDamagable
 		{
             _stateMachine.ChangeState<PlayerClimbState>();
 		}
-	}
-
-	private void OnTriggerExit2D(Collider2D collision)
-	{
-
 	}
 	#endregion
 
@@ -237,7 +245,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 
         if (_rigidbody.velocity.y < 0.0f)
             _isFalling = true;
-        else if (_rigidbody.velocity.y >= 0.0f)
+        else if (_rigidbody.velocity.y >= 0.0f || IsGrounded)
             _isFalling = false;
 
         _animator.SetFloat(_animVerticalSpeedFloat, _rigidbody.velocity.y);
@@ -245,11 +253,6 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private void CheckGround()
 	{
-        if (IsJumping && !IsFalling)
-        {
-            return;
-        }
-
         Vector3 startPos = _bodyCollider.bounds.center;
         startPos.y -= _bodyCollider.bounds.extents.y;
         Collider2D hitCollider = Physics2D.OverlapBox(startPos, _groundCheckBox, 0, _groundLayerMask);
@@ -273,9 +276,8 @@ public class PlayerController : MonoBehaviour, IDamagable
         Vector2 checkPos = _bodyCollider.bounds.center - new Vector3(0.0f, _bodyCollider.bounds.extents.y);
         RaycastHit2D hit = Physics2D.Raycast(checkPos, Vector2.down, _slopeCheckDistance,
             _groundLayerMask);
-#if UNITY_EDITOR
+
 		Debug.DrawRay(checkPos, Vector2.down, Color.red);
-#endif
 
 		if (hit)
 		{
@@ -292,10 +294,8 @@ public class PlayerController : MonoBehaviour, IDamagable
             }
             _slopeDownAngle = _slopeDownAnglePrev;
 
-#if UNITY_EDITOR
 			Debug.DrawRay(hit.point, _slopeNormalPerp, Color.red);
 			Debug.DrawRay(hit.point, hit.normal, Color.green);
-#endif
 		}
 	}
 
@@ -323,17 +323,13 @@ public class PlayerController : MonoBehaviour, IDamagable
         }
     }
 
-    private void InitPlayerData()
-	{
-        _playerData.Initialize(_initialLife, _initialHp);
-	}
-
     private void InitState()
 	{
         _stateMachine = new StateMachine<PlayerController>(this, new PlayerIdleState());
         _stateMachine.AddState(new PlayerMoveState());
         _stateMachine.AddState(new PlayerDamagedState());
         _stateMachine.AddState(new PlayerClimbState());
+        _stateMachine.AddState(new PlayerDeadState());
     }
 
     private void OnDrawGizmos()
@@ -346,21 +342,23 @@ public class PlayerController : MonoBehaviour, IDamagable
     #endregion
 
     #region IDamagable Interfaces
+    public bool CanBeDamagedByJumpAttack => false;
+
     public void TakeDamage(int damage)
 	{
         if (_isInvincible)
             return;
 
-        _playerData.DecreaseHp(damage);
-        _isInvincible = true;
-        _stateMachine.ChangeState<PlayerDamagedState>();
-
         if (!IsAlive)
         {
-            Debug.Log("YOU DIED");
+            _stateMachine.ChangeState<PlayerDeadState>();
             return;
         }
 
+        _playerData.DecreaseHp(damage);
+        _isInvincible = true;
+
+        _stateMachine.ChangeState<PlayerDamagedState>();
         StartCoroutine(ResetInvincibility(_invincibleTime));
 	}
 

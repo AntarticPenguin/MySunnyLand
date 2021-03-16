@@ -11,7 +11,7 @@ public class AnimationCallback : MonoBehaviour
 	#endregion
 
 	#region Methods
-	public void InitEvent(Action beginCallback, Action endCallback)
+	public void InitEvent(Action beginCallback, Action endCallback = null)
 	{
 		_beginCallback = beginCallback;
 		_endCallback = endCallback;

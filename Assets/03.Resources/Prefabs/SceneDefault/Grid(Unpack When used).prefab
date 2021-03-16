@@ -310,7 +310,7 @@ GameObject:
   - component: {fileID: 4580343718520341467}
   - component: {fileID: 4580343718520341466}
   m_Layer: 0
-  m_Name: ItemTilemap
+  m_Name: ObjectTilemap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

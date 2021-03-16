@@ -14,6 +14,9 @@ public class Projectile : MonoBehaviour
 	private int _damage;
 	private float _duration;
 	private bool _isCollided;
+
+	private LayerMask _blockMask;
+
 	#endregion
 
 	#region Unity Methods
@@ -24,6 +27,8 @@ public class Projectile : MonoBehaviour
 		_damage = 1;
 		_duration = 3.0f;
 		_isCollided = false;
+
+		_blockMask = LayerMask.GetMask(TagAndLayer.Layer.Ground) | LayerMask.GetMask(TagAndLayer.Layer.Platform);
 
 		if (!_direction.Equals(Vector2.zero))
 		{
@@ -37,14 +42,20 @@ public class Projectile : MonoBehaviour
 		Destroy(gameObject, _duration);
 	}
 
-	private void OnTriggerEnter2D(Collider2D collision)
+	private void OnCollisionEnter2D(Collision2D collision)
 	{
-		if(_isCollided)
+		if (_isCollided)
 		{
 			return;
 		}
 
-		if (collision.tag == TagAndLayer.Tag.Enemy)
+		if(((1 << collision.gameObject.layer) & _blockMask) != 0)
+		{
+			Destroy(gameObject);
+			return;
+		}
+
+		if (collision.gameObject.tag == TagAndLayer.Tag.Enemy)
 		{
 			Collider2D projectileCollider = GetComponent<Collider2D>();
 			projectileCollider.enabled = false;

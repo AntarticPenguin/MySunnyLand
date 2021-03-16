@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
 
-public class ChaseState : State<EnemyController>
+public class EagleChaseState : State<EnemyController>
 {
 	#region Variables
 	private Seeker _seeker;
 	private Rigidbody2D _rigidbody2D;
 	private Transform _transform;
+	private EnemyControllerEagle _eagleController;
 
 	//pathfinding variables
 	private Path _path;
@@ -24,17 +25,18 @@ public class ChaseState : State<EnemyController>
 		_seeker = _owner.GetComponent<Seeker>();
 		_rigidbody2D = _owner.GetComponent<Rigidbody2D>();
 		_transform = _owner.transform;
+		_eagleController = _owner as EnemyControllerEagle;
 	}
 
 	public override void OnStart()
 	{
-		if (_owner.AttackTarget == null)
+		if (_eagleController.AttackTarget == null)
 		{
-			_stateMachine.ChangeState<PatrolState>();
+			_stateMachine.ChangeState<EaglePatrolState>();
 			return;
 		}
 			
-		_seeker.StartPath(_transform.position, _owner.AttackTarget.position, OnPathComplete);
+		_seeker.StartPath(_transform.position, _eagleController.AttackTarget.position, OnPathComplete);
 	}
 
 	public override void Update(float deltaTime)
@@ -43,7 +45,7 @@ public class ChaseState : State<EnemyController>
 		if(_calcDuration >= _calcCooltime && _seeker.IsDone())
 		{
 			_calcDuration = 0.0f;
-			_seeker.StartPath(_transform.position, _owner.AttackTarget.position, OnPathComplete);
+			_seeker.StartPath(_transform.position, _eagleController.AttackTarget.position, OnPathComplete);
 		}
 	}
 
@@ -70,7 +72,7 @@ public class ChaseState : State<EnemyController>
 		_rigidbody2D.AddForce(force);
 
 		float distance = Vector2.Distance(_rigidbody2D.position, _path.vectorPath[_currentWaypoint]);
-		if(distance < _owner.NextWaypointDistance)
+		if(distance < _eagleController.NextWaypointDistance)
 		{
 			_currentWaypoint++;
 		}

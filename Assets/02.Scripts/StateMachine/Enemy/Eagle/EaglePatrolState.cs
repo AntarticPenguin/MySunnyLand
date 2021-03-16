@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PatrolState : State<EnemyController>
+public class EaglePatrolState : State<EnemyController>
 {
 	#region Variables
 	private Transform _transform;
 	private Rigidbody2D _rigidbody;
 	private int _layerMask;
+	private EnemyControllerEagle _eagleController;
 
 	//waypoint
 	private int _waypointIndex;
@@ -19,7 +20,7 @@ public class PatrolState : State<EnemyController>
 	#endregion
 
 	#region Properties
-	public Transform[] Waypoints => _owner._waypoints;
+	public Transform[] Waypoints => _eagleController._waypoints;
 	#endregion
 
 	public override void OnInitialized()
@@ -27,6 +28,7 @@ public class PatrolState : State<EnemyController>
 		_transform = _owner.transform;
 		_rigidbody = _owner.GetComponent<Rigidbody2D>();
 		_layerMask = LayerMask.GetMask(TagAndLayer.Layer.Player);
+		_eagleController = _owner as EnemyControllerEagle;
 
 		_waypointIndex = 1;				//object start at index 0
 		_stoppingDistance = 0.025f;
@@ -43,11 +45,11 @@ public class PatrolState : State<EnemyController>
 
 	public override void Update(float deltaTime)
 	{
-		Collider2D collider = Physics2D.OverlapCircle(_transform.position, _owner.DetectRange, _layerMask);
+		Collider2D collider = Physics2D.OverlapCircle(_transform.position, _eagleController.DetectRange, _layerMask);
 		if(collider != null)
 		{
-			_owner.AttackTarget = collider.transform;
-			_stateMachine.ChangeState<ChaseState>();
+			_eagleController.AttackTarget = collider.transform;
+			_stateMachine.ChangeState<EagleChaseState>();
 		}
 	}
 

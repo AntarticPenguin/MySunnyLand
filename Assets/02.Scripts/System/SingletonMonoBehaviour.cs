@@ -24,17 +24,31 @@ public class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBehaviour
 
 	protected virtual void Awake()
 	{
-		_instance = this as T;
-		if(Application.isPlaying)
+		if(_instance != null)
 		{
-			//부모오브젝트가 있으면 부모 오브젝트를 DontDestroy
-			if(transform.parent != null && transform.root != null)
+			if (transform.parent != null && transform.root != null)
 			{
-				DontDestroyOnLoad(transform.root.gameObject);
+				Destroy(transform.root.gameObject);
 			}
 			else
 			{
-				DontDestroyOnLoad(gameObject);
+				Destroy(gameObject);
+			}
+		}
+		else
+		{
+			_instance = this as T;
+			if (Application.isPlaying)
+			{
+				//부모오브젝트가 있으면 부모 오브젝트를 DontDestroy
+				if (transform.parent != null && transform.root != null)
+				{
+					DontDestroyOnLoad(transform.root.gameObject);
+				}
+				else
+				{
+					DontDestroyOnLoad(gameObject);
+				}
 			}
 		}
 	}

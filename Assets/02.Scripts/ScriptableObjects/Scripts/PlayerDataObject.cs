@@ -9,6 +9,7 @@ public class PlayerDataObject : ScriptableObject
 	#region Variables
 	private int _life;
 	private int _hp;
+	private int _maxHp;
 
 	private int _totalScore;
 	[NonSerialized] private bool _isInitialized = false;
@@ -41,6 +42,10 @@ public class PlayerDataObject : ScriptableObject
 	{
 		_life = life;
 		_hp = hp;
+		_maxHp = hp;
+
+		OnChangedHp?.Invoke(_hp);
+		OnChangedLife?.Invoke(_life);
 	}
 
 	public void AddScore(int score)
@@ -62,7 +67,6 @@ public class PlayerDataObject : ScriptableObject
 			_life = 0;
 			return;
 		}
-
 		_life--;
 		OnChangedLife?.Invoke(_life);
 	}
@@ -76,6 +80,12 @@ public class PlayerDataObject : ScriptableObject
 	public void DecreaseHp(int amount)
 	{
 		_hp -= amount;
+		OnChangedHp?.Invoke(_hp);
+	}
+
+	public void ResetHp()
+	{
+		_hp = _maxHp;
 		OnChangedHp?.Invoke(_hp);
 	}
 }
