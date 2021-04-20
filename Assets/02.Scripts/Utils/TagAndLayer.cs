@@ -8,7 +8,7 @@ public class TagAndLayer
 	{
 		public const string Camera = "MainCamera";
 		public const string Player = "Player";
-		public const string Item = "Item";
+		public const string Interactable = "Interactable";
 		public const string Obstacle = "Obstacle";
 		public const string Enemy = "Enemy";
 		public const string DeadZone = "DeadZone";

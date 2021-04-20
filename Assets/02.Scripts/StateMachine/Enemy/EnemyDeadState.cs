@@ -5,7 +5,7 @@ using UnityEngine;
 public class EnemyDeadState : State<EnemyController>
 {
 	#region Variables
-	SpriteRenderer _spriteRenderer;
+	private SpriteRenderer _spriteRenderer;
 	#endregion
 
 	public override void OnInitialized()

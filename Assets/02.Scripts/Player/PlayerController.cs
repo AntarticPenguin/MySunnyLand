@@ -62,10 +62,11 @@ public class PlayerController : MonoBehaviour, IDamagable
     public float _invincibleTime;
 
     private bool _isInvincible;
-	#endregion
+    private BlinkSprite _blinkSprite;
+    #endregion
 
-	#region Properties
-	public ref Vector2 Movement
+    #region Properties
+    public ref Vector2 Movement
 	{
 		get
 		{
@@ -114,6 +115,7 @@ public class PlayerController : MonoBehaviour, IDamagable
         _animGroundedBool = Animator.StringToHash(AnimatorKey.Grounded);
         _animVerticalSpeedFloat = Animator.StringToHash(AnimatorKey.VerticalSpeed);
 
+        _blinkSprite = GetComponent<BlinkSprite>();
         _isInvincible = false;
         _invincibleTime = 3.0f;
 
@@ -125,6 +127,9 @@ public class PlayerController : MonoBehaviour, IDamagable
 	{
         GameObject VCam = GameObject.FindGameObjectWithTag(TagAndLayer.Tag.VCam);
         VCam.GetComponent<CinemachineVirtualCamera>().Follow = _transform;
+
+        UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
+            TagAndLayer.Layer.Enemy, false);
     }
 
     // Update is called once per frame
@@ -192,7 +197,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 
 	private void OnTriggerEnter2D(Collider2D collision)
 	{
-        if (collision.gameObject.tag == TagAndLayer.Tag.Item)
+        if (collision.gameObject.tag == TagAndLayer.Tag.Interactable)
         {
             collision.gameObject.GetComponent<IInteractable>()?.Interact();
         }
@@ -210,11 +215,19 @@ public class PlayerController : MonoBehaviour, IDamagable
             _stateMachine.ChangeState<PlayerClimbState>();
 		}
 	}
-	#endregion
 
-	#region Methods
+    private void OnDrawGizmos()
+    {
+        Vector3 startPos = _bodyCollider.bounds.center;
+        startPos.y -= _bodyCollider.bounds.extents.y;
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(startPos, _groundCheckBox);
+    }
+    #endregion
 
-	private void UpdateDirection()
+    #region Methods
+
+    private void UpdateDirection()
 	{
 		//update sprite flipped
 		if (!_isFlipped)
@@ -243,7 +256,7 @@ public class PlayerController : MonoBehaviour, IDamagable
             _rigidbody.AddForce(Vector2.up * _jumpForce);
 		}
 
-        if (_rigidbody.velocity.y < 0.0f)
+        if (!IsGrounded && _rigidbody.velocity.y < 0.0f)
             _isFalling = true;
         else if (_rigidbody.velocity.y >= 0.0f || IsGrounded)
             _isFalling = false;
@@ -301,27 +314,30 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private void UpdateFriction()
 	{
-        if(IsGrounded && _movement.Equals(Vector2.zero))
-        {
-            _bodyCollider.GetContacts(_bodyContactsFilter, _bodyContacts);
-            if(0.7f < _bodyContacts[0].normal.y && _bodyContacts[0].normal.y <= 1.0f)
+		if (_stateMachine.GetCurrentStateType() == typeof(PlayerDeadState))
+			return;
+
+		if (IsGrounded && _movement.Equals(Vector2.zero))
+		{
+			_bodyCollider.GetContacts(_bodyContactsFilter, _bodyContacts);
+			if (0.7f < _bodyContacts[0].normal.y && _bodyContacts[0].normal.y <= 1.0f)
 			{
 				_dynamicPhysics.friction = 0.01f;
-            }
-        }
-        else
+			}
+		}
+		else
 		{
-            _dynamicPhysics.friction = 0.0f;
-            
-        }
+			_dynamicPhysics.friction = 0.0f;
 
-        if(_previousFriction != _dynamicPhysics.friction)
+		}
+
+		if (_previousFriction != _dynamicPhysics.friction)
 		{
-            _previousFriction = _dynamicPhysics.friction;
-            _bodyCollider.enabled = false;
-            _bodyCollider.enabled = true;
-        }
-    }
+			_previousFriction = _dynamicPhysics.friction;
+			_bodyCollider.enabled = false;
+			_bodyCollider.enabled = true;
+		}
+	}
 
     private void InitState()
 	{
@@ -332,12 +348,9 @@ public class PlayerController : MonoBehaviour, IDamagable
         _stateMachine.AddState(new PlayerDeadState());
     }
 
-    private void OnDrawGizmos()
+    public void Kill()
 	{
-        Vector3 startPos = _bodyCollider.bounds.center;
-        startPos.y -= _bodyCollider.bounds.extents.y;
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(startPos, _groundCheckBox);
+        _stateMachine.ChangeState<PlayerDeadState>();
 	}
     #endregion
 
@@ -362,11 +375,12 @@ public class PlayerController : MonoBehaviour, IDamagable
         StartCoroutine(ResetInvincibility(_invincibleTime));
 	}
 
-    private IEnumerator ResetInvincibility(float coolTime)
+    private IEnumerator ResetInvincibility(float time)
 	{
+        _blinkSprite?.StartBlink(time);
         UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
             TagAndLayer.Layer.Enemy);
-        yield return new WaitForSeconds(coolTime);
+        yield return new WaitForSeconds(time);
         _isInvincible = false;
         UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
             TagAndLayer.Layer.Enemy, false);

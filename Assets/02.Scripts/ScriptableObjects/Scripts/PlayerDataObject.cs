@@ -7,9 +7,12 @@ using System;
 public class PlayerDataObject : ScriptableObject
 {
 	#region Variables
+	private const int MAX_HP_LIMIT = 5;
+
 	private int _life;
 	private int _hp;
-	private int _maxHp;
+	private int _currentMaxHp;			//현재 maxHp
+	private int _maxHpLimit;            //상한 Hp
 
 	private int _totalScore;
 	[NonSerialized] private bool _isInitialized = false;
@@ -23,6 +26,8 @@ public class PlayerDataObject : ScriptableObject
 	#region Properties
 	public int Life => _life;
 	public int Hp => _hp;
+	public int CurrentMaxHp => _currentMaxHp;
+	public int MaxHpLimit => _maxHpLimit;
 	public int TotalScore => _totalScore;
 	#endregion
 
@@ -40,9 +45,12 @@ public class PlayerDataObject : ScriptableObject
 	/// </summary>
 	public void Initialize(int life, int hp)
 	{
+		Debug.Log("Init player data");
+		_maxHpLimit = MAX_HP_LIMIT;
+		_currentMaxHp = (hp >= MaxHpLimit) ? MaxHpLimit : hp;
+		_hp = CurrentMaxHp;
+
 		_life = life;
-		_hp = hp;
-		_maxHp = hp;
 
 		OnChangedHp?.Invoke(_hp);
 		OnChangedLife?.Invoke(_life);
@@ -74,6 +82,8 @@ public class PlayerDataObject : ScriptableObject
 	public void AddHp(int amount)
 	{
 		_hp += amount;
+		if (_hp >= _currentMaxHp)
+			_hp = _currentMaxHp;
 		OnChangedHp?.Invoke(_hp);
 	}
 
@@ -85,7 +95,7 @@ public class PlayerDataObject : ScriptableObject
 
 	public void ResetHp()
 	{
-		_hp = _maxHp;
+		_hp = _currentMaxHp;
 		OnChangedHp?.Invoke(_hp);
 	}
 }

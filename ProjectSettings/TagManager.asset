@@ -4,11 +4,11 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Item
   - Obstacle
   - Enemy
   - DeadZone
   - VCam
+  - Interactable
   layers:
   - Default
   - TransparentFX
@@ -61,11 +61,14 @@ TagManager:
   - name: PlatformTile
     uniqueID: 3160393651
     locked: 0
-  - name: ItemTile
+  - name: ObjectTile
     uniqueID: 2660902075
     locked: 0
   - name: Character
     uniqueID: 1462075091
+    locked: 0
+  - name: ForegroundTile
+    uniqueID: 1021014675
     locked: 0
   - name: Projectile
     uniqueID: 1846743263

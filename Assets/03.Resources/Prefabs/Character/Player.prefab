@@ -92,6 +92,7 @@ GameObject:
   - component: {fileID: 8746968186997180256}
   - component: {fileID: 8746968186997180286}
   - component: {fileID: 8746968186997180261}
+  - component: {fileID: 4590428241136253327}
   - component: {fileID: 8746968186997180258}
   - component: {fileID: 8746968186997180259}
   - component: {fileID: 8746968186997180260}
@@ -166,6 +167,20 @@ MonoBehaviour:
     type: 3}
   _playerData: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
   _invincibleTime: 1
+--- !u!114 &4590428241136253327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8746968186997180287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b65ddbdc3b61164cb3a779a9f707641, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _blinkInterval: 0.1
+  _sprite: {fileID: 3493252509061788495}
 --- !u!50 &8746968186997180258
 Rigidbody2D:
   serializedVersion: 4

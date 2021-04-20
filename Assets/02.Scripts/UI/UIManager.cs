@@ -9,9 +9,14 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 	public PlayerDataObject _playerDataObject;
 
 	public Text _scoreText;
-	public Text _hpText;
 	public Text _lifeText;
 	public Text _gameOverText;
+	public GameObject _hpObject;
+
+	public Sprite _filledHeart;
+	public Sprite _emptyHeart;
+
+	private Image[] _hpSprites;
 	#endregion
 
 	private void Start()
@@ -25,6 +30,12 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 
 	private void InitUI()
 	{
+		_hpSprites = _hpObject.GetComponentsInChildren<Image>();
+		for(int i = _playerDataObject.CurrentMaxHp; i < _playerDataObject.MaxHpLimit; i++)
+		{
+			_hpSprites[i].gameObject.SetActive(false);
+		}
+
 		UpdateScore(_playerDataObject.TotalScore);
 		UpdateHp(_playerDataObject.Hp);
 		UpdateLife(_playerDataObject.Life);
@@ -37,14 +48,22 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 
 	private void UpdateHp(int hp)
 	{
-		if (hp < 0)
-			hp = 0;
-		_hpText.text = "Hp: " + hp.ToString();
+		for (int i = 0; i < _playerDataObject.CurrentMaxHp; i++)
+		{
+			if(i < hp)
+			{
+				_hpSprites[i].sprite = _filledHeart;
+			}
+			else
+			{
+				_hpSprites[i].sprite = _emptyHeart;
+			}
+		}
 	}
 
 	private void UpdateLife(int life)
 	{
-		_lifeText.text = "Life: " + life.ToString();
+		_lifeText.text = "x " + life.ToString();
 	}
 
 	public void ActiveGameOverUI(bool active)

@@ -17,7 +17,6 @@ public class PlayerMoveState : State<PlayerController>
 		_animator = _owner.GetComponent<Animator>();
 		_animSpeedFloat = Animator.StringToHash(AnimatorKey.Speed); ;
 		_speed = _owner.Speed;
-
 	}
 
 	public override void OnStart()
@@ -72,9 +71,12 @@ public class PlayerMoveState : State<PlayerController>
 			{
 				newVelocity.x += _speed * fixedDeltaTime;
 			}
+			else if((int)_rigidbody.velocity.x == 0 && movement.x != 0)		//Jump in place with movement
+			{
+				newVelocity.x += _speed * fixedDeltaTime * movement.x * 2;
+			}
 		}
 
 		_rigidbody.velocity = newVelocity;
 	}
-
 }

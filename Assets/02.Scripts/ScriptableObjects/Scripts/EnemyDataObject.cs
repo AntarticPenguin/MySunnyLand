@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 [CreateAssetMenu(fileName = "EnemyData", menuName = "ScriptableObjects/EnemyDefaultData")]
 public class EnemyDataObject : ScriptableObject
@@ -18,6 +19,5 @@ public class EnemyDataObject : ScriptableObject
 	#endregion
 
 	#region Helper Methods
-
 	#endregion
 }

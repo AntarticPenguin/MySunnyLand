@@ -67,6 +67,15 @@ public class EnemyControllerFrog : EnemyController, IDamagable
 			collision.gameObject.GetComponent<IDamagable>()?.TakeDamage(Damage);
 		}
 	}
+
+	private void OnTriggerEnter2D(Collider2D collision)
+	{
+		if(collision.gameObject.tag == TagAndLayer.Tag.DeadZone)
+		{
+			_stateMachine.ChangeState<EnemyDeadState>();
+		}
+	}
+
 	#endregion
 
 	#region Methods

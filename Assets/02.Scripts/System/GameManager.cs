@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Linq;
 
 public class GameManager : SingletonMonoBehaviour<GameManager>
 {
@@ -12,15 +11,17 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
 	public PlayerDataObject _playerDataObject;
 
 	[SerializeField] private int _initialLife;
+
+	[Range(1, 5)] 
 	[SerializeField] private int _initialHp;
-	[SerializeField] private SavePoint _initialRespawnPoint;        //씬 시작시 사용될 최초 리스폰포인트
-	private SavePoint _respawnPoint;
+	[SerializeField] private RespawnPoint _initialRespawnPoint;        //씬 시작시 사용될 최초 리스폰포인트
+	private RespawnPoint _respawnPoint;
 	#endregion
 
 	#region Unity Methods
-	private void Start()
+	protected override void Awake()
 	{
-		if(_initialRespawnPoint != null)
+		if (_initialRespawnPoint != null)
 		{
 			_respawnPoint = _initialRespawnPoint;
 			Instantiate(_playerPrefab, _initialRespawnPoint.transform.position, Quaternion.identity);
@@ -31,10 +32,35 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
 			Debug.LogError("Set initial respawn point!!");
 		}
 	}
+
+	private void OnEnable()
+	{
+		SceneManager.sceneLoaded += InitializeRespawnPoint;
+	}
+
+	private void OnDisable()
+	{
+		SceneManager.sceneLoaded -= InitializeRespawnPoint;
+	}
+
 	#endregion
 
 	#region Helper Methods
-	public void SetRespawnPoint(SavePoint newPoint)
+	private void InitializeRespawnPoint(Scene scene, LoadSceneMode mode)
+	{
+		GameObject[] respawnPoints = GameObject.FindGameObjectsWithTag(TagAndLayer.Tag.Respawn);
+		for(int i = 0; i < respawnPoints.Length; i++)
+		{
+			RespawnPoint respawn = respawnPoints[i].GetComponent<RespawnPoint>();
+			if (respawn._isStartingPoint)
+			{
+				_respawnPoint = respawn;
+				return;
+			}
+		}
+	}
+
+	public void SetRespawnPoint(RespawnPoint newPoint)
 	{
 		_respawnPoint = newPoint;
 	}
