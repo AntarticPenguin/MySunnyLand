@@ -34,7 +34,7 @@ public class RespawnPoint : MonoBehaviour
 		{
 			_isActivated = true;
 			_animator.Play(_gainDoorHash);
-			GameManager.Instance.SetRespawnPoint(this);
+			RespawnManager.Instance.SetRespawnPoint(this);
 		}
 	}
 

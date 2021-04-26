@@ -4,18 +4,26 @@ using UnityEngine;
 using System;
 
 [CreateAssetMenu(fileName ="PlayerData", menuName ="ScriptableObjects/PlayerData")]
-public class PlayerDataObject : ScriptableObject
+public class PlayerDataObject : ScriptableObject, ISerializationCallbackReceiver
 {
 	#region Variables
-	private const int MAX_HP_LIMIT = 5;
+	public int _initialLife;
+	public int _initialHp;
+	public int _initialMaxHp;
+	public int _maxHpLimit;
 
-	private int _life;
-	private int _hp;
-	private int _currentMaxHp;			//현재 maxHp
-	private int _maxHpLimit;            //상한 Hp
+	//Runtime Value
+	[NonSerialized]
+	private int _lifeRuntime;
 
-	private int _totalScore;
-	[NonSerialized] private bool _isInitialized = false;
+	[NonSerialized]
+	private int _hpRuntime;
+
+	[NonSerialized]
+	private int _currentMaxHpRunTime;
+
+	[NonSerialized]
+	private int _totalScoreRunTime;
 
 	//event
 	public event Action<int> OnChangedScore;
@@ -24,78 +32,74 @@ public class PlayerDataObject : ScriptableObject
 	#endregion
 
 	#region Properties
-	public int Life => _life;
-	public int Hp => _hp;
-	public int CurrentMaxHp => _currentMaxHp;
+	public int Life => _lifeRuntime;
+	public int Hp => _hpRuntime;
+	public int CurrentMaxHp => _currentMaxHpRunTime;
 	public int MaxHpLimit => _maxHpLimit;
-	public int TotalScore => _totalScore;
+	public int TotalScore => _totalScoreRunTime;
 	#endregion
 
-	private void OnEnable()
+	public void OnBeforeSerialize()
 	{
-		if (_isInitialized)
-			return;
 
-		_isInitialized = true;
-		_totalScore = 0;
 	}
 
-	/// <summary>
-	/// Initialized by Player Class
-	/// </summary>
-	public void Initialize(int life, int hp)
+	public void OnAfterDeserialize()
 	{
-		Debug.Log("Init player data");
-		_maxHpLimit = MAX_HP_LIMIT;
-		_currentMaxHp = (hp >= MaxHpLimit) ? MaxHpLimit : hp;
-		_hp = CurrentMaxHp;
+		_lifeRuntime = _initialLife;
+		_hpRuntime = _initialHp;
+		_currentMaxHpRunTime = (_initialMaxHp > _maxHpLimit) ? _maxHpLimit : _initialMaxHp;
 
-		_life = life;
-
-		OnChangedHp?.Invoke(_hp);
-		OnChangedLife?.Invoke(_life);
+		_totalScoreRunTime = 0;
 	}
 
 	public void AddScore(int score)
 	{
-		_totalScore += score;
-		OnChangedScore?.Invoke(_totalScore);
+		_totalScoreRunTime += score;
+		OnChangedScore?.Invoke(_totalScoreRunTime);
 	}
 
 	public void AddLife(int amount)
 	{
-		_life += amount;
-		OnChangedLife?.Invoke(_life);
+		_lifeRuntime += amount;
+		OnChangedLife?.Invoke(_lifeRuntime);
 	}
 
 	public void DecreaseLife()
 	{
-		if (_life < 0)
+		if (_lifeRuntime < 0)
 		{
-			_life = 0;
+			_lifeRuntime = 0;
 			return;
 		}
-		_life--;
-		OnChangedLife?.Invoke(_life);
+		_lifeRuntime--;
+		OnChangedLife?.Invoke(_lifeRuntime);
 	}
 
 	public void AddHp(int amount)
 	{
-		_hp += amount;
-		if (_hp >= _currentMaxHp)
-			_hp = _currentMaxHp;
-		OnChangedHp?.Invoke(_hp);
+		_hpRuntime += amount;
+		if (_hpRuntime >= _currentMaxHpRunTime)
+			_hpRuntime = _currentMaxHpRunTime;
+		OnChangedHp?.Invoke(_hpRuntime);
 	}
 
 	public void DecreaseHp(int amount)
 	{
-		_hp -= amount;
-		OnChangedHp?.Invoke(_hp);
+		_hpRuntime -= amount;
+		OnChangedHp?.Invoke(_hpRuntime);
 	}
 
 	public void ResetHp()
 	{
-		_hp = _currentMaxHp;
-		OnChangedHp?.Invoke(_hp);
+		_hpRuntime = _currentMaxHpRunTime;
+		OnChangedHp?.Invoke(_hpRuntime);
+	}
+
+	public void AddMaxHp(int amount)
+	{
+		_currentMaxHpRunTime += amount;
+		if(_currentMaxHpRunTime >= _maxHpLimit)
+			_currentMaxHpRunTime = _maxHpLimit;
 	}
 }

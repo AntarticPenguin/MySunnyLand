@@ -7,9 +7,14 @@ using UnityEngine.Events;
 public class EnemyDataObject : ScriptableObject
 {
 	#region Variables
-	[SerializeField] private int _hp;
-	[SerializeField] private float _speed;
-	[SerializeField] private int _damage;
+	[SerializeField]
+	private int _hp;
+
+	[SerializeField]
+	private float _speed;
+
+	[SerializeField]
+	private int _damage;
 	#endregion
 
 	#region Properties

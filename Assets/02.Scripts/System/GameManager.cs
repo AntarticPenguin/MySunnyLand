@@ -7,80 +7,37 @@ using UnityEngine.SceneManagement;
 public class GameManager : SingletonMonoBehaviour<GameManager>
 {
 	#region Variables
-	public GameObject _playerPrefab;
+	[Header("Player Data")]
 	public PlayerDataObject _playerDataObject;
 
-	[SerializeField] private int _initialLife;
+	[SerializeField]
+	private int _initialLife;
 
-	[Range(1, 5)] 
-	[SerializeField] private int _initialHp;
-	[SerializeField] private RespawnPoint _initialRespawnPoint;        //씬 시작시 사용될 최초 리스폰포인트
-	private RespawnPoint _respawnPoint;
+	[SerializeField] [Range(1, 5)] 
+	private int _initialHp;
 	#endregion
 
 	#region Unity Methods
 	protected override void Awake()
 	{
-		if (_initialRespawnPoint != null)
-		{
-			_respawnPoint = _initialRespawnPoint;
-			Instantiate(_playerPrefab, _initialRespawnPoint.transform.position, Quaternion.identity);
-			InitPlayerData();
-		}
-		else
-		{
-			Debug.LogError("Set initial respawn point!!");
-		}
-	}
+		if (CheckDuplicationInScene())
+			return;
 
-	private void OnEnable()
-	{
-		SceneManager.sceneLoaded += InitializeRespawnPoint;
+		base.Awake();
+		DontDestroy();
 	}
-
-	private void OnDisable()
-	{
-		SceneManager.sceneLoaded -= InitializeRespawnPoint;
-	}
-
 	#endregion
 
 	#region Helper Methods
-	private void InitializeRespawnPoint(Scene scene, LoadSceneMode mode)
-	{
-		GameObject[] respawnPoints = GameObject.FindGameObjectsWithTag(TagAndLayer.Tag.Respawn);
-		for(int i = 0; i < respawnPoints.Length; i++)
-		{
-			RespawnPoint respawn = respawnPoints[i].GetComponent<RespawnPoint>();
-			if (respawn._isStartingPoint)
-			{
-				_respawnPoint = respawn;
-				return;
-			}
-		}
-	}
-
-	public void SetRespawnPoint(RespawnPoint newPoint)
-	{
-		_respawnPoint = newPoint;
-	}
-
-	public void RespawnPlayer()
-	{
-		_playerDataObject.DecreaseLife();
-		_playerDataObject.ResetHp();
-		_respawnPoint.PlayOpenDoor();
-		Instantiate(_playerPrefab, _respawnPoint.transform.position, Quaternion.identity);
-	}
-
 	public void GameOver()
 	{
 		UIManager.Instance.ActiveGameOverUI(true);
 	}
 
-	private void InitPlayerData()
+	public void PlayerDied()
 	{
-		_playerDataObject.Initialize(_initialLife, _initialHp);
+		_playerDataObject.DecreaseLife();
+		_playerDataObject.ResetHp();
 	}
 	#endregion
 }

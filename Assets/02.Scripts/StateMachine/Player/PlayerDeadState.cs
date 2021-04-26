@@ -33,7 +33,8 @@ public class PlayerDeadState : State<PlayerController>
 			}
 
 			Object.Destroy(_owner.gameObject);
-			GameManager.Instance.RespawnPlayer();
+			GameManager.Instance.PlayerDied();
+			RespawnManager.Instance.RespawnPlayer();
 		});
 
 		_rigidbody.velocity = Vector2.zero;

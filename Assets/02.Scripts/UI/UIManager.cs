@@ -21,11 +21,21 @@ public class UIManager : SingletonMonoBehaviour<UIManager>
 
 	private void Start()
 	{
+		InitUI();
+	}
+
+	private void OnEnable()
+	{
 		_playerDataObject.OnChangedScore += UpdateScore;
 		_playerDataObject.OnChangedHp += UpdateHp;
 		_playerDataObject.OnChangedLife += UpdateLife;
+	}
 
-		InitUI();
+	private void OnDisable()
+	{
+		_playerDataObject.OnChangedScore -= UpdateScore;
+		_playerDataObject.OnChangedHp -= UpdateHp;
+		_playerDataObject.OnChangedLife -= UpdateLife;
 	}
 
 	private void InitUI()
