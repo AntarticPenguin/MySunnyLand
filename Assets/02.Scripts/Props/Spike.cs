@@ -30,6 +30,9 @@ public class Spike : MonoBehaviour
 
 	private void OnValidate()
 	{
+		if (GameObject.Find("Grid") == null)
+			return;
+
 		Grid grid = GameObject.Find("Grid").GetComponent<Grid>();
 		Vector3Int cellPosition = grid.WorldToCell(transform.position);
 		transform.position = grid.GetCellCenterWorld(cellPosition);

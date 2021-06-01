@@ -5,7 +5,7 @@ using UnityEngine;
 public class EagleAttackState : State<EnemyController>
 {
 	#region Variables
-	EnemyControllerEagle _eagleController;
+	private EnemyControllerEagle _eagleController;
 	#endregion
 
 	public override void OnInitialized()

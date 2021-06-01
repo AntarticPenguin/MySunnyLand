@@ -6,62 +6,31 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
 	#region Variables
-	public GameObject _owner;
-	public Vector2 _direction = Vector2.zero;
+	public ProjectileDataObject _data;
+	public Rigidbody2D _rigidbody;
 
-	private Rigidbody2D _rigidbody;
-	private float _power;
-	private int _damage;
-	private float _duration;
-	private bool _isCollided;
+	[SerializeField]
+	private LayerMask _blockingMask;
 
-	private LayerMask _blockMask;
-
+	[SerializeField]
+	private LayerMask _targetMask;
 	#endregion
 
 	#region Unity Methods
 	void Start()
 	{
-		_rigidbody = GetComponent<Rigidbody2D>();
-		_power = 4.0f;
-		_damage = 1;
-		_duration = 3.0f;
-		_isCollided = false;
-
-		_blockMask = LayerMask.GetMask(TagAndLayer.Layer.Ground) | LayerMask.GetMask(TagAndLayer.Layer.Platform);
-
-		if (!_direction.Equals(Vector2.zero))
-		{
-			_rigidbody.velocity = _direction * _power;
-		}
-		else
-		{
-			_rigidbody.velocity = transform.right * _power;
-		}
-
-		Destroy(gameObject, _duration);
+		_rigidbody.velocity = transform.right * _data.Speed;
+		Destroy(gameObject, _data.LifeTime);
 	}
 
-	private void OnCollisionEnter2D(Collision2D collision)
+	private void OnTriggerEnter2D(Collider2D collision)
 	{
-		if (_isCollided)
+		if ((_blockingMask & (1 << collision.gameObject.layer)) != 0)
 		{
-			return;
-		}
-
-		if(((1 << collision.gameObject.layer) & _blockMask) != 0)
-		{
-			Destroy(gameObject);
-			return;
-		}
-
-		if (collision.gameObject.tag == TagAndLayer.Tag.Enemy)
-		{
-			Collider2D projectileCollider = GetComponent<Collider2D>();
-			projectileCollider.enabled = false;
-			_isCollided = true;
-
-			collision.gameObject.GetComponent<IDamagable>()?.TakeDamage(_damage);
+			if ((_targetMask & (1 << collision.gameObject.layer)) != 0)
+			{
+				collision.GetComponent<IDamagable>()?.TakeDamage(_data.Damage);
+			}
 
 			Destroy(gameObject);
 		}

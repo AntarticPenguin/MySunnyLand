@@ -16,7 +16,6 @@ public class PlayerController : MonoBehaviour, IDamagable
     private ContactPoint2D[] _bodyContacts;
     private ContactFilter2D _bodyContactsFilter;
     private float _previousFriction;
-    private Vector3 _flippedScale = new Vector3(-1.0f, 1.0f, 1.0f);
     private LayerMask _groundLayerMask;
 
     private StateMachine<PlayerController> _stateMachine;
@@ -29,7 +28,7 @@ public class PlayerController : MonoBehaviour, IDamagable
     [SerializeField] private bool _isGrounded;
     [SerializeField] private bool _isClimbing;
     [SerializeField] private float _reactionPower;      //데미지를 받고 튕겨져 나가는 힘
-    private bool _isFlipped;
+    private bool _bFacingRight = true;
     private Vector2 _movement;
 
     //jump
@@ -46,12 +45,6 @@ public class PlayerController : MonoBehaviour, IDamagable
     [SerializeField] private float _slopeCheckDistance = 0.5f;
     [SerializeField] private bool _isOnSlope;
 
-    //attack
-    public GameObject _projectilePrefab;
-
-    private Vector3 _launchPosition;
-    private Vector3 _launchOffset = new Vector3(0.3f, 0.15f, 0.0f);
-
     //animation
     private Animator _animator;
     private int _animGroundedBool;
@@ -63,6 +56,8 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private bool _isInvincible;
     private BlinkSprite _blinkSprite;
+
+    public GameObject bulletPrefab;
     #endregion
 
     #region Properties
@@ -75,7 +70,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 	}
 
 	public bool IsAlive => (_playerData.Hp > 0);
-    public bool IsFlipped => _isFlipped;
+    public bool FacingRight => _bFacingRight;
     public bool IsGrounded => _isGrounded;
     public bool IsClimbing
     {
@@ -137,8 +132,8 @@ public class PlayerController : MonoBehaviour, IDamagable
     {
         _stateMachine.Update(Time.deltaTime);
 
-        if (_stateMachine.GetCurrentStateType() == typeof(PlayerDamagedState) ||
-            _stateMachine.GetCurrentStateType() == typeof(PlayerDeadState))
+        if (_stateMachine.CurrentState.GetType() == typeof(PlayerDamagedState) ||
+            _stateMachine.CurrentState.GetType() == typeof(PlayerDeadState))
             return;
 
         //move
@@ -146,13 +141,20 @@ public class PlayerController : MonoBehaviour, IDamagable
         if (Input.GetKey(KeyCode.LeftArrow))
 		{
             _movement.x = -1.0f;
-            _isFlipped = true;
         }
         else if(Input.GetKey(KeyCode.RightArrow))
 		{
             _movement.x = 1.0f;
-            _isFlipped = false;
         }
+
+        if(_movement.x > 0 && !_bFacingRight)
+		{
+            Flip();
+		}
+        else if(_movement.x < 0 && _bFacingRight)
+		{
+            Flip();
+		}
 
         //climb
         if (Input.GetKey(KeyCode.UpArrow))
@@ -163,24 +165,16 @@ public class PlayerController : MonoBehaviour, IDamagable
 		{
             _movement.y = -1.0f;
 		}
+
+        if(Input.GetKeyDown(KeyCode.Z))
+		{
+            Instantiate(bulletPrefab, transform.position, transform.rotation);
+		}
      
         //jump
         if (IsGrounded && Input.GetKeyDown(KeyCode.Space))
 		{
             _jumpInput = true;
-		}
-
-        //attack
-        if(Input.GetKeyDown(KeyCode.Z))
-		{
-            GameObject go = Instantiate(_projectilePrefab, _launchPosition, Quaternion.identity);
-            Projectile projectile = go.GetComponent<Projectile>();
-            if(projectile != null)
-            {
-                projectile._owner = gameObject;
-                Vector2 direction = Vector2.right * (_isFlipped ? -1.0f : 1.0f);
-                projectile._direction = direction;
-            }
 		}
     }
 
@@ -189,7 +183,6 @@ public class PlayerController : MonoBehaviour, IDamagable
         CheckGround();
         CheckVerticalSlope();
         UpdateFriction();
-        UpdateDirection();
         UpdateJump();
 
         _stateMachine.FixedUpdate(Time.fixedDeltaTime);
@@ -226,25 +219,9 @@ public class PlayerController : MonoBehaviour, IDamagable
     #endregion
 
     #region Methods
-
-    private void UpdateDirection()
-	{
-		//update sprite flipped
-		if (!_isFlipped)
-		{
-			_transform.localScale = Vector3.one;
-			_launchPosition = new Vector3(transform.position.x + _launchOffset.x, transform.position.y - _launchOffset.y);
-		}
-		else
-		{
-			_transform.localScale = _flippedScale;
-			_launchPosition = new Vector3(transform.position.x - _launchOffset.x, transform.position.y - _launchOffset.y);
-		}
-	}
-
 	private void UpdateJump()
 	{
-		if (_stateMachine.GetCurrentStateType() == typeof(PlayerDamagedState))
+		if (_stateMachine.CurrentState.GetType() == typeof(PlayerDamagedState))
 		{
             _animator.SetFloat(_animVerticalSpeedFloat, 0);
             return;
@@ -314,7 +291,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private void UpdateFriction()
 	{
-		if (_stateMachine.GetCurrentStateType() == typeof(PlayerDeadState))
+		if (_stateMachine.CurrentState.GetType() == typeof(PlayerDeadState))
 			return;
 
 		if (IsGrounded && _movement.Equals(Vector2.zero))
@@ -339,6 +316,12 @@ public class PlayerController : MonoBehaviour, IDamagable
 		}
 	}
 
+    private void Flip()
+	{
+        _bFacingRight = !_bFacingRight;
+        _transform.Rotate(0f, 180f, 0f);
+	}
+
     private void InitState()
 	{
         _stateMachine = new StateMachine<PlayerController>(this, new PlayerIdleState());
@@ -352,6 +335,12 @@ public class PlayerController : MonoBehaviour, IDamagable
 	{
         _stateMachine.ChangeState<PlayerDeadState>();
 	}
+
+    public void Bounce(float force)
+	{
+        _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0.0f);
+        _rigidbody.AddForce(new Vector2(0, force));
+    }
     #endregion
 
     #region IDamagable Interfaces
@@ -378,12 +367,8 @@ public class PlayerController : MonoBehaviour, IDamagable
     private IEnumerator ResetInvincibility(float time)
 	{
         _blinkSprite?.StartBlink(time);
-        UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
-            TagAndLayer.Layer.Enemy);
         yield return new WaitForSeconds(time);
         _isInvincible = false;
-        UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
-            TagAndLayer.Layer.Enemy, false);
     }
     #endregion
 }

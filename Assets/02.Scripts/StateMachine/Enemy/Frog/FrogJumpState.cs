@@ -11,6 +11,9 @@ public class FrogJumpState : State<EnemyController>
 	private EnemyControllerFrog _frogController;
 	private Vector2 _angleVector = Vector2.zero;
 	private float _changeDirection;
+
+	private Animator _animator;
+	private int _attackSpeedAnimHash;
 	#endregion
 
 	public override void OnInitialized()

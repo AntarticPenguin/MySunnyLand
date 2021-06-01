@@ -63,6 +63,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -109,6 +110,7 @@ GameObject:
   - component: {fileID: 4428830047382851811}
   - component: {fileID: 4428830047382851836}
   - component: {fileID: 4428830047382851810}
+  - component: {fileID: 8340629899261713770}
   - component: {fileID: 4428830047382851837}
   m_Layer: 12
   m_Name: Platform
@@ -146,6 +148,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -207,6 +210,27 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.6, y: 0.32}
   m_EdgeRadius: 0
+--- !u!50 &8340629899261713770
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4428830047382851808}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!114 &4428830047382851837
 MonoBehaviour:
   m_ObjectHideFlags: 0

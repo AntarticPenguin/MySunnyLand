@@ -31,8 +31,9 @@ Transform:
   m_GameObject: {fileID: 1570636647235406519}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.31, y: 0.85, z: -1.899641}
-  m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
-  m_Children: []
+  m_LocalScale: {x: -0.8, y: 0.8, z: 0.8}
+  m_Children:
+  - {fileID: 8619309011390023152}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -51,6 +52,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -98,14 +100,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f86b19383d5d584c8cf771f96d10d8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerDataObject: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
   _enemyDataObject: {fileID: 11400000, guid: 45328ad346ea26d47a16fd1edbd5ad85, type: 2}
+  _stunEffectOffset: {fileID: 8619309011390023152}
   _killPoint: 100
-  _deathEffectPrefab: {fileID: 2847825183576034021, guid: d97b8f1d28e8ca447bfffc4c00a17322,
-    type: 3}
+  _playerDataObject: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
   _jumpAngle: 40
   _jumpMinCooltime: 2
-  _jumpMaxCooltime: 5
+  _jumpMaxCooltime: 4
 --- !u!114 &1886375533872638691
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -185,3 +186,33 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!1 &4738293228356161815
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8619309011390023152}
+  m_Layer: 11
+  m_Name: StunOffset
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8619309011390023152
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4738293228356161815}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.328, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1570636647235406520}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

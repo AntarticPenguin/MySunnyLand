@@ -17,7 +17,8 @@ public class EnemyDeadState : State<EnemyController>
 	{
 		_spriteRenderer.enabled = false;
 
-		GameObject effect = Object.Instantiate(_owner._deathEffectPrefab, _owner.transform.position, Quaternion.identity);
+		GameObject effectPrefab = _owner._enemyDataObject._deathEffectPrefab;
+		GameObject effect = Object.Instantiate(effectPrefab, _owner.transform.position, Quaternion.identity);
 		effect.GetComponent<AnimationCallback>()?.InitEvent(null, delegate
 		{
 			Object.Destroy(effect);

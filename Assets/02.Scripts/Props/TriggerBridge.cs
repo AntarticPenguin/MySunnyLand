@@ -36,6 +36,8 @@ public class TriggerBridge : MonoBehaviour, ITriggerable
 
         BoxCollider2D collider = GetComponent<BoxCollider2D>();
         collider.size = newSize;
+
+        transform.localScale = Vector3.one;
     }
     #endregion
 

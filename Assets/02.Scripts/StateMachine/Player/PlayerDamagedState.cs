@@ -32,7 +32,7 @@ public class PlayerDamagedState : State<PlayerController>
 		_animator.SetTrigger(_animHurtTrigger);
 
 		Vector2 reverseVec = UtilMethods.DegreeToVector2(60.0f);
-		reverseVec.x *= _owner.IsFlipped ? 1.0f : -1.0f;
+		reverseVec.x *= _owner.FacingRight ? -1.0f : 1.0f;
 		reverseVec.y *= 1.5f;
 		_rigidbody.velocity = Vector2.zero;
 		_rigidbody.AddForce(reverseVec * _owner.ReactionPower);

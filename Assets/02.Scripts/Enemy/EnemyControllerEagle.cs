@@ -72,7 +72,7 @@ public class EnemyControllerEagle : EnemyController, IDamagable
 		if (!IsAlive)
 		{
 			_hp = 0;
-			_playerDataObject.AddScore(_killPoint);
+			_playerDataObject.AddScore(_enemyDataObject.KillPoint);
 			_stateMachine.ChangeState<EnemyDeadState>();
 		}
 	}

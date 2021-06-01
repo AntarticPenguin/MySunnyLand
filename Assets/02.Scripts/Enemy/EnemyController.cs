@@ -6,18 +6,22 @@ using Pathfinding;
 public abstract class EnemyController : MonoBehaviour
 {
 	#region Variables
-	[SerializeField] protected PlayerDataObject _playerDataObject;
-	[SerializeField] private EnemyDataObject _enemyDataObject;
-	public int _killPoint;
-	public GameObject _deathEffectPrefab;
+	public EnemyDataObject _enemyDataObject;
+	public Transform _stunEffectOffset;
+
+	[SerializeField]
+	protected PlayerDataObject _playerDataObject;
 
 	protected StateMachine<EnemyController> _stateMachine;
 	protected Rigidbody2D _rigidbody;
 	protected Transform _transform;
 
 	protected int _hp;
+	protected bool _bFacingRight = true;
+
 	private int _damage;
 	private float _speed;
+	
 
 	private bool _isActiveController = true;
 	#endregion
@@ -59,19 +63,10 @@ public abstract class EnemyController : MonoBehaviour
 			LayerMask.NameToLayer(TagAndLayer.Layer.Enemy), true);
 	}
 
-	// Update is called once per frame
 	protected virtual void Update()
 	{
 		_stateMachine.Update(Time.deltaTime);
-
-		if (_rigidbody.velocity.x <= -0.01f)
-		{
-			_transform.localScale = new Vector3(1f, 1f, 1f);
-		}
-		else if (_rigidbody.velocity.x >= 0.01f)
-		{
-			_transform.localScale = new Vector3(-1f, 1f, 1f);
-		}
+		UpdateDirection();
 	}
 
 	protected virtual void FixedUpdate()
@@ -83,20 +78,36 @@ public abstract class EnemyController : MonoBehaviour
 	#region Methods
 	protected abstract void InitState();
 
+	protected virtual void UpdateDirection()
+	{
+		if (_rigidbody.velocity.x <= -0.01f && _bFacingRight)
+		{
+			Flip();
+		}
+		else if (_rigidbody.velocity.x >= 0.01f && !_bFacingRight)
+		{
+			Flip();
+		}
+	}
+
 	protected bool CheckJumpAttack(Collision2D collision)
 	{
 		float normalY = collision.GetContact(0).normal.y;
-		if (-1.0f <= normalY && normalY <= -0.7f)
+		if (-1.0f <= normalY && normalY <= -0.65f)
 		{
 			//플레이어를 위로 한번 바운스
 			PlayerController player = collision.gameObject.GetComponent<PlayerController>();
-			Rigidbody2D playerRigidbody = player.GetComponent<Rigidbody2D>();
-			playerRigidbody.velocity = new Vector2(playerRigidbody.velocity.x, 0.0f);
-			playerRigidbody.AddForce(new Vector2(0, player.ReactionPower * 1.5f));
+			player.Bounce(_enemyDataObject.Elasticity);
 			return true;
 		}
 
 		return false;
+	}
+
+	protected void Flip()
+	{
+		_bFacingRight = !_bFacingRight;
+		_transform.Rotate(0f, 180f, 0f);
 	}
 	#endregion
 }

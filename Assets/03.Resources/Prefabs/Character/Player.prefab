@@ -46,6 +46,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -163,10 +164,10 @@ MonoBehaviour:
   _isFalling: 0
   _slopeCheckDistance: 0.5
   _isOnSlope: 0
-  _projectilePrefab: {fileID: 8180395763422695534, guid: 40cb9273e061ec849978bf2511ce28df,
-    type: 3}
   _playerData: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
   _invincibleTime: 1
+  bulletPrefab: {fileID: 8180395763422695534, guid: 40cb9273e061ec849978bf2511ce28df,
+    type: 3}
 --- !u!114 &4590428241136253327
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,7 +181,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _blinkInterval: 0.1
-  _sprite: {fileID: 3493252509061788495}
 --- !u!50 &8746968186997180258
 Rigidbody2D:
   serializedVersion: 4

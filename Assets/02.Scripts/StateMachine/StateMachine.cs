@@ -7,8 +7,14 @@ public sealed class StateMachine<T>
 	#region Variables
 	private T _owner;
 	private State<T> _currentState;
+	private State<T> _previousState;
 	private float _elapsedTime = 0.0f;
 	private Dictionary<System.Type, State<T>> _states = new Dictionary<System.Type, State<T>>();
+	#endregion
+
+	#region Properties
+	public State<T> CurrentState => _currentState;
+	public State<T> PreviousState => _previousState;
 	#endregion
 
 	#region Methods
@@ -18,6 +24,7 @@ public sealed class StateMachine<T>
 
 		AddState(initialState);
 		_currentState = initialState;
+
 		_currentState.OnStart();
 	}
 
@@ -57,14 +64,25 @@ public sealed class StateMachine<T>
 		}
 		#endif
 
+		_previousState = _currentState;
 		_currentState = _states[newType];
 		_currentState.OnStart();
 		_elapsedTime = 0.0f;
 	}
-	public System.Type GetCurrentStateType()
-	{
-		return _currentState.GetType();
-	}
 
+	public void ChangeToPreviousState()
+	{
+		if(_currentState != null)
+		{
+			_currentState.OnExit();
+		}
+
+		var targetState = _states[_previousState.GetType()];
+		_previousState = _currentState;
+		_currentState = _states[targetState.GetType()];
+
+		_currentState.OnStart();
+		_elapsedTime = 0.0f;
+	}
 	#endregion
 }

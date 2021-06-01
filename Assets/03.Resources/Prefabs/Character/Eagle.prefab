@@ -31,7 +31,7 @@ Transform:
   m_GameObject: {fileID: 6147869853572573853}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 2.686, y: 3.573, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: -1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -51,6 +51,7 @@ SpriteRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -117,11 +118,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75fbae0a643175f47a69ef85f79e1e83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _playerDataObject: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
   _enemyDataObject: {fileID: 11400000, guid: ae9da67b90fdf6c4bbed7a683b883a47, type: 2}
+  _stunEffectOffset: {fileID: 0}
   _killPoint: 300
-  _deathEffectPrefab: {fileID: 2847825183576034021, guid: d97b8f1d28e8ca447bfffc4c00a17322,
-    type: 3}
+  _playerDataObject: {fileID: 11400000, guid: 41612d4b544189846b383e3d78b70163, type: 2}
   _waypoints: []
   _detectRange: 1.5
   _nextWaypointDistance: 0.7

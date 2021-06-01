@@ -83,6 +83,7 @@ public class EnemyControllerFrog : EnemyController, IDamagable
 	{
 		_stateMachine = new StateMachine<EnemyController>(this, new FrogJumpState());
 		_stateMachine.AddState(new EnemyDeadState());
+		_stateMachine.AddState(new EnemyStunState());
 	}
 	#endregion
 
@@ -95,9 +96,12 @@ public class EnemyControllerFrog : EnemyController, IDamagable
 		if (!IsAlive)
 		{
 			_hp = 0;
-			_playerDataObject.AddScore(_killPoint);
+			_playerDataObject.AddScore(_enemyDataObject.KillPoint);
 			_stateMachine.ChangeState<EnemyDeadState>();
+			return;
 		}
+
+		_stateMachine.ChangeState<EnemyStunState>();
 	}
 
 	#endregion

@@ -10,24 +10,25 @@ public class MovingPlatform : MonoBehaviour
     public bool _canLoop;
     public float _speed;
 
-    private Transform _transform;
+    private Rigidbody2D _rigidbody;
     
 	#endregion
 
 	#region Unity Methods
 	void Start()
     {
-        _transform = transform;
         transform.position = _startPos;
+
+        _rigidbody = GetComponent<Rigidbody2D>();
     }
 
 	private void FixedUpdate()
 	{
         float step = _speed * Time.fixedDeltaTime;
-        _transform.position = Vector2.MoveTowards(_transform.position, _targetPos, step);
+        _rigidbody.position = Vector2.MoveTowards(_rigidbody.position, _targetPos, step);
 
         //if platform has arrived at target position
-        if(_canLoop && (Vector2.Distance(_transform.position, _targetPos) < step))
+        if (_canLoop && (Vector2.Distance(_rigidbody.position, _targetPos) < step))
 		{
 			Vector2 tempPos = _targetPos;
 			_targetPos = _startPos;
