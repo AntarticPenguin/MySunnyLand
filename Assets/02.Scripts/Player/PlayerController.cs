@@ -319,7 +319,8 @@ public class PlayerController : MonoBehaviour, IDamagable
     private void Flip()
 	{
         _bFacingRight = !_bFacingRight;
-        _transform.Rotate(0f, 180f, 0f);
+        //_transform.Rotate(0f, 180f, 0f);
+        _transform.localRotation *= Quaternion.Euler(0f, 180f, 0f);
 	}
 
     private void InitState()

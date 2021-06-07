@@ -8,7 +8,7 @@ public class AttachingPlatform : MonoBehaviour
 	#region Variables
 	public bool _ignoreRotation;
 
-	private GameObject _target;
+	private PlayerController _target;
 	#endregion
 
 	#region Unity Methods
@@ -19,28 +19,40 @@ public class AttachingPlatform : MonoBehaviour
 
 	private void FixedUpdate()
 	{
-		if(!_ignoreRotation && _target != null)
+		if (!_ignoreRotation && _target != null)
 		{
-			_target.transform.rotation = transform.rotation;
+			if (_target.FacingRight)
+				_target.transform.rotation = transform.rotation;
+			else
+				_target.transform.rotation = transform.rotation * Quaternion.Euler(0, 180f, 0f);
 		}
 	}
 
 	//Attaching the player to the platform
-	private void OnCollisionEnter2D(Collision2D collision)
+	private void OnTriggerEnter2D(Collider2D collision)
 	{
 		if (collision.gameObject.tag == TagAndLayer.Tag.Player)
 		{
-			collision.collider.transform.SetParent(transform);
-			_target = collision.gameObject;
+			collision.gameObject.transform.SetParent(transform);
+			_target = collision.gameObject.GetComponent<PlayerController>();
 		}
 	}
 
-	private void OnCollisionExit2D(Collision2D collision)
+	private void OnTriggerExit2D(Collider2D collision)
 	{
 		if (collision.gameObject.tag == TagAndLayer.Tag.Player)
 		{
-			collision.collider.transform.SetParent(null);
-			collision.collider.transform.rotation = Quaternion.identity;
+			collision.gameObject.transform.SetParent(null);
+
+			if (_target.FacingRight)
+			{
+				_target.transform.localRotation = Quaternion.Euler(new Vector3(0f, 0f, 0f));
+			}
+			else
+			{
+				_target.transform.localRotation = Quaternion.Euler(new Vector3(0f, -180f, 0f));
+			}
+
 			_target = null;
 		}
 	}
