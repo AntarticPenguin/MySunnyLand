@@ -156,9 +156,10 @@ MonoBehaviour:
   _speed: 3
   _climbSpeed: 1.5
   _jumpAttackDamage: 1
+  _reactionPower: 200
+  _interactRadius: 0.22
   _isGrounded: 0
   _isClimbing: 0
-  _reactionPower: 200
   _jumpForce: 400
   _isJumping: 0
   _isFalling: 0

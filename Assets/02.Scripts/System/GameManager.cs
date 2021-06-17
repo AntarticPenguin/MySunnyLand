@@ -10,11 +10,15 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
 	[Header("Player Data")]
 	public PlayerDataObject _playerDataObject;
 
-	[SerializeField]
-	private int _initialLife;
+	private PlayerController _playerController;
+	#endregion
 
-	[SerializeField] [Range(1, 5)] 
-	private int _initialHp;
+	#region Properties
+	public PlayerController Player
+	{
+		get	{ return _playerController;	}
+		set	{ _playerController = value; }
+	}
 	#endregion
 
 	#region Unity Methods

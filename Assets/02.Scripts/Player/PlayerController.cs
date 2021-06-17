@@ -20,23 +20,27 @@ public class PlayerController : MonoBehaviour, IDamagable
 
     private StateMachine<PlayerController> _stateMachine;
 
-    //stat
+    [Header("Stats")]
     [SerializeField] private float _speed = 3.0f;
     [SerializeField] private float _climbSpeed = 1.5f;
     [SerializeField] private int _jumpAttackDamage = 1;
-
-    [SerializeField] private bool _isGrounded;
-    [SerializeField] private bool _isClimbing;
     [SerializeField] private float _reactionPower;      //데미지를 받고 튕겨져 나가는 힘
+    [SerializeField] private float _interactRadius;
+
     private bool _bFacingRight = true;
     private Vector2 _movement;
 
-    //jump
+    [Header("Jump Stats")]
     public float _jumpForce = 300.0f;
 
-    private bool _jumpInput;
+    [Header("Boolean Check")]
+    [SerializeField] private bool _isGrounded;
+    [SerializeField] private bool _isClimbing;
     [SerializeField] private bool _isJumping;
     [SerializeField] private bool _isFalling;
+    [SerializeField] private bool _isTalking;
+
+    private bool _jumpInput;
 
     //check slope
     private Vector2 _slopeNormalPerp;       //경사와 수직인 벡터
@@ -81,6 +85,11 @@ public class PlayerController : MonoBehaviour, IDamagable
     public bool IsJumping => _isJumping;
     public bool IsFalling => _isFalling;
 
+    public bool IsTalking
+	{
+		set { _isTalking = value; }
+	}
+
     public float Speed => _speed;
     public float ClimbSpeed => _climbSpeed;
     public bool IsOnSlope => _isOnSlope;
@@ -114,6 +123,8 @@ public class PlayerController : MonoBehaviour, IDamagable
         _isInvincible = false;
         _invincibleTime = 3.0f;
 
+        _isTalking = false;
+
         _groundLayerMask = LayerMask.GetMask(TagAndLayer.Layer.Ground) | LayerMask.GetMask(TagAndLayer.Layer.Platform);
         InitState();
     }
@@ -125,6 +136,8 @@ public class PlayerController : MonoBehaviour, IDamagable
 
         UtilMethods.IgnoreLayerCollisionByName(TagAndLayer.Layer.Player,
             TagAndLayer.Layer.Enemy, false);
+
+        GameManager.Instance.Player = this;
     }
 
     // Update is called once per frame
@@ -133,7 +146,8 @@ public class PlayerController : MonoBehaviour, IDamagable
         _stateMachine.Update(Time.deltaTime);
 
         if (_stateMachine.CurrentState.GetType() == typeof(PlayerDamagedState) ||
-            _stateMachine.CurrentState.GetType() == typeof(PlayerDeadState))
+            _stateMachine.CurrentState.GetType() == typeof(PlayerDeadState) ||
+            _isTalking)
             return;
 
         //move
@@ -176,6 +190,15 @@ public class PlayerController : MonoBehaviour, IDamagable
 		{
             _jumpInput = true;
 		}
+
+        if(Input.GetKeyDown(KeyCode.F))
+		{
+            Collider2D result = Physics2D.OverlapCircle(_transform.position, _interactRadius, LayerMask.GetMask("Interaction"));
+            if(result != null)
+			{
+                result.GetComponent<IInteractable>()?.Interact();
+			}
+		}
     }
 
 	private void FixedUpdate()
@@ -190,11 +213,7 @@ public class PlayerController : MonoBehaviour, IDamagable
 
 	private void OnTriggerEnter2D(Collider2D collision)
 	{
-        if (collision.gameObject.tag == TagAndLayer.Tag.Interactable)
-        {
-            collision.gameObject.GetComponent<IInteractable>()?.Interact();
-        }
-		else if (collision.gameObject.tag == TagAndLayer.Tag.DeadZone)
+		if (collision.gameObject.tag == TagAndLayer.Tag.DeadZone)
 		{
 			_stateMachine.ChangeState<PlayerDeadState>();
 		}
@@ -215,6 +234,9 @@ public class PlayerController : MonoBehaviour, IDamagable
         startPos.y -= _bodyCollider.bounds.extents.y;
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(startPos, _groundCheckBox);
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(_bodyCollider.bounds.center, _interactRadius);
     }
     #endregion
 
